@@ -7,7 +7,7 @@
   "license": "MIT",
   "scripts": {
     "dev": "nodemon ./src/index.ts",
-    "test": "jest",
+    "test": "jest --coverage",
     "build": "tsc",
     "prepare": "husky install",
     "lint:fix": "eslint --ext .ts ./src --fix",
