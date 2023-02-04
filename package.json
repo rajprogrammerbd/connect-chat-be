@@ -8,6 +8,7 @@
   "scripts": {
     "dev": "nodemon ./src/index.ts",
     "test": "jest",
+    "build": "tsc",
     "prepare": "husky install",
     "lint:fix": "eslint --ext .ts ./src --fix",
     "lint": "eslint --ext .ts .",
