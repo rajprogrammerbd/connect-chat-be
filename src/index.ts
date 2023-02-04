@@ -1,15 +1,43 @@
-import express, { Express, Request, Response } from 'express'
-import dotenv from 'dotenv'
+import dotenv from 'dotenv';
+dotenv.config();
 
-dotenv.config()
+import { WebSocketServer } from 'ws';
+import http from 'http';
+import express, { Express } from 'express';
+import cors from 'cors';
+import consola from 'consola';
+import debug from 'debug';
+import morgan from 'morgan';
+import timeout from 'connect-timeout';
+import compression from 'compression';
 
-const app: Express = express()
-const port = process.env.PORT || 3001
+// Import all the routes
+import homerouter from './routes/homepage.route';
 
-app.get('/', (req: Request, res: Response) => {
-  res.send('Express + TypeScript Server')
-})
+// Debug logger.
+const port_log = debug('listen:port');
 
-app.listen(port, () => {
-  console.log(`⚡️[server]: Server is running at http://localhost:${port}`)
-})
+const app: Express = express();
+
+// Middlewares integration.
+app.use(cors());
+app.use(express.json());
+app.use(compression());
+app.use(timeout('15s'));
+app.use(morgan('combined'));
+
+app.use('/', homerouter);
+
+const server = http.createServer(app);
+const wsServer = new WebSocketServer({ server });
+
+const port = process.env.PORT || 3001;
+
+wsServer.on('connection', (socket: WebSocket) => {
+  socket.send('Connect successfully');
+});
+
+server.listen(port, () => {
+  consola.success('Server is running');
+  port_log(`Server is running at http://localhost:${port}`);
+});
