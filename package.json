@@ -11,7 +11,9 @@
     "prettier:base": "prettier --parser typescript --single-quote",
     "prettier:check": "npm run prettier:base -- --list-different \"src/**/*.{ts,tsx}\"",
     "prettier:write": "npm run prettier:base -- --write \"src/**/*.{ts,tsx}\"",
-    "prepare": "husky install"
+    "prepare": "husky install",
+    "precommit": "npm run prettier:write",
+    "lint": "eslint \"src/**\""
   },
   "dependencies": {
     "dotenv": "^16.0.3",
