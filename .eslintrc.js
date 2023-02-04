@@ -1,18 +1,23 @@
 module.exports = {
-  parser: "@typescript-eslint/parser",
+  parser: '@typescript-eslint/parser',
   parserOptions: {
-    project: "./tsconfig.json",
+    ecmaVersion: 12,
+    sourceType: 'module',
   },
-  plugins: ["@typescript-eslint"],
+  plugins: ['@typescript-eslint'],
   extends: [
-    "plugin:react/recommended",
-    "plugin:@typescript-eslint/recommended",
+    'eslint:recommended',
+    'plugin:@typescript-eslint/recommended',
+    'prettier',
   ],
   rules: {
-    // Overwrite rules specified from the extended configs e.g.
-    // "@typescript-eslint/explicit-function-return-type": "off",
-    "no-await-in-loop": "error",
-    "array-callback-return": "warn",
-    "no-constructor-return": "error",
+    'no-await-in-loop': 'off',
+    'no-continue': 'error',
+    '@typescript-eslint/no-unused-vars': 'error',
+    '@typescript-eslint/consistent-type-definitions': ['error', 'type'],
   },
-};
+  env: {
+    browser: true,
+    es2021: true,
+  },
+}
