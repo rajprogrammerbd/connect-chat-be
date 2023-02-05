@@ -45,7 +45,7 @@ wsServer.on('connection', (socket) => {
     const parsed = JSON.parse(d as string);
     console.log('parsed data ', parsed);
 
-    // Check if the user is 
+    // Check if the user is new.
     if (parsed.newConnection) {
         // Generate a user id.
         const userId = uuidv4();
