@@ -10,9 +10,12 @@ import debug from 'debug';
 import morgan from 'morgan';
 import timeout from 'connect-timeout';
 import compression from 'compression';
+import { v4 as uuidv4 } from 'uuid';
 
 // Import all the routes
 import homerouter from './routes/homepage.route';
+// import createNewUser from './controllers/createNewUser';
+// import joinExistedUser from './controllers/joinExistedUser/joinExistedUser';
 
 // Debug logger.
 const port_log = debug('listen:port');
@@ -33,11 +36,34 @@ const wsServer = new WebSocketServer({ server });
 
 const port = process.env.PORT || 3001;
 
-wsServer.on('connection', (socket: WebSocket) => {
-  socket.send('Connect successfully');
+wsServer.on('connection', (socket) => {  
+  // socket.send(JSON.stringify({ userId, accessId }));
+
+  socket.on('message', (data, isBinary) => {
+    const d = isBinary ? data : data.toString();
+    console.log('debugging ', d);
+    const parsed = JSON.parse(d as string);
+    console.log('parsed data ', parsed);
+
+    // Check if the user is 
+    if (parsed.newConnection) {
+        // Generate a user id.
+        const userId = uuidv4();
+        const accessId = uuidv4();
+
+      socket.send(JSON.stringify({ connection: true, message: 'Connected Succesfully', userId, accessId }));
+    } else if (parsed.newConnection === false) {
+
+      socket.send(d);
+    } else if (parsed.newConnection === undefined) {
+      socket.send(JSON.stringify({ connection: false, message: 'Failed to connect (Invalid request)' }));
+    } else {
+      socket.send(JSON.stringify({ connection: false, message: 'Failed to connect (Invalid request)' }));
+    }
+  });
 });
 
 server.listen(port, () => {
   consola.success('Server is running');
-  port_log(`Server is running at http://localhost:${port}`);
+  port_log(`Server is running at http://localhost:${port}`)
 });
