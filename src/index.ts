@@ -14,8 +14,6 @@ import { v4 as uuidv4 } from 'uuid'
 
 // Import all the routes
 import homerouter from './routes/homepage.route'
-// import createNewUser from './controllers/createNewUser';
-// import joinExistedUser from './controllers/joinExistedUser/joinExistedUser';
 
 // Debug logger.
 const port_log = debug('listen:port')
@@ -37,19 +35,16 @@ const wsServer = new WebSocketServer({ server })
 const port = process.env.PORT || 3001
 
 wsServer.on('connection', socket => {
-  // socket.send(JSON.stringify({ userId, accessId }));
-
   socket.on('message', (data, isBinary) => {
     const d = isBinary ? data : data.toString()
 
-    const parsed = JSON.parse(d as string);
-    console.log('parsed data ', parsed);
+    const parsed = JSON.parse(d as string)
 
     // Check if the user is new.
     if (parsed.newConnection) {
       // Generate a user id.
-      const userId = uuidv4();
-      const accessId = uuidv4();
+      const userId = uuidv4()
+      const accessId = uuidv4()
 
       socket.send(
         JSON.stringify({
@@ -58,7 +53,7 @@ wsServer.on('connection', socket => {
           userId,
           accessId,
           name: parsed.name,
-          userIds: []
+          userIds: [],
         })
       )
     } else if (parsed.newConnection === false) {
