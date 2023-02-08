@@ -14,6 +14,8 @@ import { v4 as uuidv4 } from 'uuid'
 
 // Import all the routes
 import homerouter from './routes/homepage.route'
+import UserLinkedList from './Data/users'
+import MessageLinkedList from './Data/messages'
 
 // Debug logger.
 const port_log = debug('listen:port')
@@ -34,30 +36,56 @@ const wsServer = new WebSocketServer({ server })
 
 const port = process.env.PORT || 3001
 
+const user = new UserLinkedList()
+
 wsServer.on('connection', socket => {
   socket.on('message', (data, isBinary) => {
     const d = isBinary ? data : data.toString()
 
     const parsed = JSON.parse(d as string)
 
+    console.log('parsed data ', parsed)
+
     // Check if the user is new.
     if (parsed.newConnection) {
+      if (parsed.name === undefined) {
+        socket.send(
+          JSON.stringify({
+            connection: false,
+            message: 'Failed to connect (Invalid request)',
+          })
+        )
+      }
       // Generate a user id.
       const userId = uuidv4()
       const accessId = uuidv4()
 
+      user.push({
+        userName: parsed.name,
+        accessId,
+        userId,
+        connectedUserNames: [],
+        messages: new MessageLinkedList(),
+      })
+
+      console.log('a new user', user)
+      const newUser = {
+        connection: true,
+        message: 'Connected Succesfully',
+        userId,
+        accessId,
+        name: parsed.name,
+        userIds: [],
+      }
+
+      socket.send(JSON.stringify(newUser))
+    } else if (parsed.newConnection === false) {
       socket.send(
         JSON.stringify({
-          connection: true,
-          message: 'Connected Succesfully',
-          userId,
-          accessId,
-          name: parsed.name,
-          userIds: [],
+          connection: false,
+          message: 'Failed to connect (Invalid request)',
         })
       )
-    } else if (parsed.newConnection === false) {
-      socket.send(d)
     } else if (parsed.newConnection === undefined) {
       socket.send(
         JSON.stringify({
@@ -73,6 +101,10 @@ wsServer.on('connection', socket => {
         })
       )
     }
+  })
+
+  socket.on('close', (code, buffer) => {
+    console.log('the connection has been closed ', code, buffer)
   })
 })
 
