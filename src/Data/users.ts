@@ -1,20 +1,20 @@
-import { IUsersName } from '../types';
-import MessageLinkedList from './messages';
+import { IUsersName } from '../types'
+import MessageLinkedList from './messages'
 
 export type IValues = {
-  userName: string;
-  userId: string;
-  accessId: string;
-  connectedUserNames?: IUsersName[];
-  messages?: MessageLinkedList;
+  userName: string
+  userId: string
+  accessId: string
+  connectedUserNames?: IUsersName[]
+  messages?: MessageLinkedList
 }
 
 type IAddToExistedUser = {
-  accessId: string | undefined;
-  userIds: IUsersName[] ;
-  messages: MessageLinkedList | undefined;
-  name: string | undefined;
-  userId: string | undefined;
+  accessId: string | undefined
+  userIds: IUsersName[]
+  messages: MessageLinkedList | undefined
+  name: string | undefined
+  userId: string | undefined
 }
 
 export class UserNode {
@@ -41,7 +41,7 @@ class UserLinkedList {
   }
 
   push(val: IValues) {
-    const newNode = new UserNode(val);
+    const newNode = new UserNode(val)
 
     if (this.length === 0) {
       this.head = newNode
@@ -60,63 +60,65 @@ class UserLinkedList {
   }
 
   find(accessID: string) {
-
-    let current = this.head;
+    let current = this.head
     while (current) {
-        if (current.value.accessId === accessID) {
-            return true;
-        }
-        current = current.next;
+      if (current.value.accessId === accessID) {
+        return true
+      }
+      current = current.next
     }
 
-    return false;
+    return false
   }
 
   removeExistedUser(userId: string) {
-    let current = this.head;
+    let current = this.head
 
     while (current) {
       // Check for the list of connected user and remove it if find.
       current.value.connectedUserNames?.forEach((obj: IUsersName) => {
         if (obj.userId !== userId) {
-          return obj;
+          return obj
         }
-      });
+      })
 
       if (current.value.userId === userId) {
         // current?.prev.next = current.next;
         if (current.prev) {
-          current.prev.next = current.next;
+          current.prev.next = current.next
         }
       }
 
-      current = current.next;
+      current = current.next
     }
   }
-  
+
   addToAdmin(val: IValues): IAddToExistedUser {
-        const newUser = this.push(val);
-        let current = this.head;
-        let res: IAddToExistedUser | undefined;
+    const newUser = this.push(val)
+    let current = this.head
+    let res: IAddToExistedUser | undefined
 
-        while (current) {
-            if (current.value.accessId === val.accessId) {
-                current.value.connectedUserNames?.push({ name: newUser?.value.userName as string, userId: newUser?.value.userId as string });
-                
-                res = {
-                  accessId: newUser?.value.accessId,
-                  userIds: current.value.connectedUserNames as IUsersName[],
-                  messages: current.value.messages,
-                  name: newUser?.value.userName,
-                  userId: newUser?.value.userId
-                };
-                break;
-            }
+    while (current) {
+      if (current.value.accessId === val.accessId) {
+        current.value.connectedUserNames?.push({
+          name: newUser?.value.userName as string,
+          userId: newUser?.value.userId as string,
+        })
 
-            current = current.next;
+        res = {
+          accessId: newUser?.value.accessId,
+          userIds: current.value.connectedUserNames as IUsersName[],
+          messages: current.value.messages,
+          name: newUser?.value.userName,
+          userId: newUser?.value.userId,
         }
+        break
+      }
 
-        return res as IAddToExistedUser;
+      current = current.next
+    }
+
+    return res as IAddToExistedUser
   }
 }
 
