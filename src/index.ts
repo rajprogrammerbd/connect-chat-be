@@ -83,7 +83,7 @@ io.on('connection', socket => {
     socket.to(chatID).emit('updated-connected-users', obj)
   })
 
-  socket.on('remove_user', (obj) => {
+  socket.on('remove_user', obj => {
     console.log('socket disconnect ', obj)
     // user.removeExistedUser(userId);
 
