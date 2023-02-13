@@ -6,7 +6,7 @@ import consola from 'consola'
 import debug from 'debug'
 import { v4 as uuidv4 } from 'uuid'
 import UserLinkedList from './Data/users'
-import MessageLinkedList from './Data/messages'
+import MessageLinkedList, { IValues } from './Data/messages'
 import { IPreparedDataType, IUsersName } from './types'
 
 // Debug logger.
@@ -24,12 +24,9 @@ const errorResponseData = {
   message: 'Failed to connect (Invalid request)',
 }
 
-const user = new UserLinkedList();
+const user = new UserLinkedList()
 
 io.on('connection', socket => {
-  const userId = uuidv4();
-  const accessIdUnique = uuidv4();
-
   /*
   // Join into a room.
   socket.on('join-room', (room: string) => {
@@ -40,28 +37,33 @@ io.on('connection', socket => {
   // Create a new User.
   socket.on('new_user', (name: string) => {
     const msg = new MessageLinkedList();
+    const userId = uuidv4();
+    const accessId = uuidv4();
 
     msg.push({
       type: 'user_joined',
       userName: name,
       userId,
       message: `${name} started the chat`,
-      timeStamp: new Date()
-    });
+      timeStamp: new Date(),
+    })
 
-    const newUser = user.push({
-      accessId: socket.id,
-      userId,
-      userName: name,
-      messages: new MessageLinkedList(),
-      connectedAccessId: '',
-      connectedUserNames: [{ name, userId, connectedAccessId: '' }],
-    }, msg);
+    const newUser = user.push(
+      {
+        accessId: accessId,
+        userId,
+        userName: name,
+        messages: new MessageLinkedList(),
+        connectedAccessId: '',
+        connectedUserNames: [{ name, userId, connectedAccessId: '' }],
+      },
+      msg
+    )
 
     const res: IPreparedDataType = {
       connection: true,
       message: 'Connection is successed',
-      accessId: socket.id,
+      accessId: accessId,
       connectedAccessId: newUser?.value.connectedAccessId,
       messages: newUser?.value.messages,
       name: newUser?.value.userName,
@@ -69,24 +71,26 @@ io.on('connection', socket => {
       userIds: newUser?.value.connectedUserNames,
     }
 
-    socket.join(res.accessId as string);
+    socket.join(res.accessId as string)
 
-    io.emit('receive_new_connection', res);
-  });
+    socket.emit('receive_new_connection', res)
+  })
 
   // added a existed user
   socket.on('add_new_existed', (name: string, chatID: string) => {
     const isUserExisted = user.find(chatID);
+    const userId = uuidv4();
+    const accessIdUnique = uuidv4();
 
     if (isUserExisted) {
       const addNewUser = user.addToAdmin({
         accessId: accessIdUnique,
         userId: userId,
         userName: name,
-        connectedAccessId: chatID
-      });
+        connectedAccessId: chatID,
+      })
 
-      socket.join(addNewUser.connectedAccessId as string);
+      socket.join(addNewUser.connectedAccessId as string)
 
       socket.emit('recived_new_existed_user', {
         connection: true,
@@ -96,51 +100,70 @@ io.on('connection', socket => {
         name: addNewUser.name,
         messages: addNewUser.messages,
         userIds: addNewUser.userIds,
-        connectedAccessId: addNewUser.connectedAccessId
-      });
+        connectedAccessId: addNewUser.connectedAccessId,
+      })
     } else {
       socket.emit('failed_response', errorResponseData)
     }
-  });
+  })
 
   // Return the data after refresh
-  socket.on('retrieve_info_of_refreshed_user', (userId: string, accessId: string, connectedAccessId: string) => {
+  socket.on(
+    'retrieve_info_of_refreshed_user',
+    (userId: string, accessId: string, connectedAccessId: string) => {
+      const res = user.lookForAUser(userId, accessId, connectedAccessId)
 
-    const res = user.lookForAUser(userId, accessId, connectedAccessId);
+      const joined = connectedAccessId === '' ? accessId : connectedAccessId
 
-    const joined = connectedAccessId === '' ? accessId : connectedAccessId;
+      socket.join(joined)
 
-    socket.join(joined);
-
-    if (res !== false) {
-      socket.emit('refreshed_new_existed_user', {
-        connection: true,
-        message: 'Connection is successed',
-        accessId: res.accessId,
-        userId: res.userId,
-        name: res.userName,
-        messages: res.messages,
-        userIds: res.connectedUserNames,
-        connectedAccessId: res.connectedAccessId,
-        connectedUserNames: res.connectedUserNames
-      });
+      if (res !== false) {
+        socket.emit('refreshed_new_existed_user', {
+          connection: true,
+          message: 'Connection is successed',
+          accessId: res.accessId,
+          userId: res.userId,
+          name: res.userName,
+          messages: res.messages,
+          userIds: res.connectedUserNames,
+          connectedAccessId: res.connectedAccessId,
+          connectedUserNames: res.connectedUserNames,
+        })
+      }
     }
-  });
+  )
 
   // Updated connected user.
   socket.on('update-connected-user', (obj: IUsersName, chatID: string) => {
     // Here I need to find the root user and send the message.
-    let root = user.head;
+    let root = user.head
     while (root) {
       if (root.value.accessId === chatID) {
-        break;
+        break
       }
-      root = root.next;
+      root = root.next
     }
 
-    socket.to(chatID).emit('updated-connected-users', obj, root?.value.messages);
+    socket.to(chatID).emit('updated-connected-users', obj, root?.value.messages)
+  })
+
+  socket.on('send_message', (msg: IValues, accessId: string) => {
+    let current = user.head;
+    
+    while (current) {
+      if (current.value.accessId === accessId) {
+        current.value.messages?.push(msg);
+        break;
+      }
+
+      current = current.next;
+    }
+
+    socket.to(accessId).emit('update-all-messages', current?.value.messages);
+    // ----------------------------------------------------------
+
   });
-});
+})
 
 consola.success('Server is running')
 port_log(`Server is running at http://localhost:${PORT}`)

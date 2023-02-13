@@ -2,12 +2,12 @@ import { IUsersName } from '../types'
 import MessageLinkedList from './messages'
 
 export type IValues = {
-  userName: string;
-  userId: string;
-  accessId?: string;
-  connectedAccessId?: string;
-  connectedUserNames?: IUsersName[];
-  messages?: MessageLinkedList;
+  userName: string
+  userId: string
+  accessId?: string
+  connectedAccessId?: string
+  connectedUserNames?: IUsersName[]
+  messages?: MessageLinkedList
 }
 
 type IAddToExistedUser = {
@@ -43,10 +43,10 @@ class UserLinkedList {
   }
 
   push(val: IValues, msg?: MessageLinkedList) {
-    const newNode = new UserNode(val);
+    const newNode = new UserNode(val)
 
     if (msg) {
-      newNode.value.messages = msg;
+      newNode.value.messages = msg
     }
 
     if (this.length === 0) {
@@ -65,36 +65,48 @@ class UserLinkedList {
     }
   }
 
-  lookForAUser(userId: string, accessId: string, connectedAccessId: string): IValues | false {
-    let current = this.head;
+  lookForAUser(
+    userId: string,
+    accessId: string,
+    connectedAccessId: string
+  ): IValues | false {
+    let current = this.head
     while (current) {
-      if (current.value.userId === userId && current.value.accessId === accessId && current.value.connectedAccessId === connectedAccessId) {
+      if (
+        current.value.userId === userId &&
+        current.value.accessId === accessId &&
+        current.value.connectedAccessId === connectedAccessId
+      ) {
         if (current.value.messages === undefined) {
-          let look = this.head;
+          let look = this.head
 
           while (look) {
             if (look.value.accessId === connectedAccessId) {
-              break;
+              break
             }
-            look = look.next;
+            look = look.next
           }
 
-          return { ...current.value, messages: look?.value.messages, connectedUserNames: look?.value.connectedUserNames };
+          return {
+            ...current.value,
+            messages: look?.value.messages,
+            connectedUserNames: look?.value.connectedUserNames,
+          }
         } else {
-          return current.value;
+          return current.value
         }
       }
-      current = current.next;
+      current = current.next
     }
 
-    return false;
+    return false
   }
 
   find(accessID: string) {
-    let current = this.head;
+    let current = this.head
     while (current) {
       if (current.value.accessId === accessID) {
-        return true;
+        return true
       }
       current = current.next
     }
@@ -125,24 +137,24 @@ class UserLinkedList {
   }
 
   addToAdmin(val: IValues): IAddToExistedUser {
-    const newUser = this.push(val);
-    let current = this.head;
-    let res: IAddToExistedUser | undefined;
+    const newUser = this.push(val)
+    let current = this.head
+    let res: IAddToExistedUser | undefined
 
     while (current) {
       if (current.value.accessId === val.connectedAccessId) {
         current.value.messages?.push({
-          type: 'user_joined',
+          type: 'user_joined', // user_joined
           message: `${newUser?.value.userName} joined to the chat`,
           userName: newUser?.value.userName as string,
           userId: newUser?.value.userId as string,
-          timeStamp: new Date()
-        });
+          timeStamp: new Date(),
+        })
 
         current.value.connectedUserNames?.push({
           name: newUser?.value.userName as string,
           userId: newUser?.value.userId as string,
-          connectedAccessId: newUser?.value.connectedAccessId as string
+          connectedAccessId: newUser?.value.connectedAccessId as string,
         })
 
         res = {
@@ -151,9 +163,9 @@ class UserLinkedList {
           messages: current.value.messages,
           name: newUser?.value.userName,
           userId: newUser?.value.userId,
-          connectedAccessId: newUser?.value.connectedAccessId
+          connectedAccessId: newUser?.value.connectedAccessId,
         }
-        break;
+        break
       }
 
       current = current.next
