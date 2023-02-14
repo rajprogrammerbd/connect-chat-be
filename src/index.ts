@@ -36,9 +36,9 @@ io.on('connection', socket => {
 
   // Create a new User.
   socket.on('new_user', (name: string) => {
-    const msg = new MessageLinkedList();
-    const userId = uuidv4();
-    const accessId = uuidv4();
+    const msg = new MessageLinkedList()
+    const userId = uuidv4()
+    const accessId = uuidv4()
 
     msg.push({
       type: 'user_joined',
@@ -78,9 +78,9 @@ io.on('connection', socket => {
 
   // added a existed user
   socket.on('add_new_existed', (name: string, chatID: string) => {
-    const isUserExisted = user.find(chatID);
-    const userId = uuidv4();
-    const accessIdUnique = uuidv4();
+    const isUserExisted = user.find(chatID)
+    const userId = uuidv4()
+    const accessIdUnique = uuidv4()
 
     if (isUserExisted) {
       const addNewUser = user.addToAdmin({
@@ -148,21 +148,20 @@ io.on('connection', socket => {
   })
 
   socket.on('send_message', (msg: IValues, accessId: string) => {
-    let current = user.head;
-    
+    let current = user.head
+
     while (current) {
       if (current.value.accessId === accessId) {
-        current.value.messages?.push(msg);
-        break;
+        current.value.messages?.push(msg)
+        break
       }
 
-      current = current.next;
+      current = current.next
     }
 
-    socket.to(accessId).emit('update-all-messages', current?.value.messages);
+    socket.to(accessId).emit('update-all-messages', current?.value.messages)
     // ----------------------------------------------------------
-
-  });
+  })
 })
 
 consola.success('Server is running')
