@@ -16,3 +16,8 @@ export type IPreparedDataType = {
   userIds?: IUsersName[]
   messages?: MessageLinkedList
 }
+
+export type IUserTyping = {
+  status: boolean;
+  id: string;
+}

@@ -7,7 +7,8 @@ import debug from 'debug'
 import { v4 as uuidv4 } from 'uuid'
 import UserLinkedList from './Data/users'
 import MessageLinkedList, { IValues } from './Data/messages'
-import { IPreparedDataType, IUsersName } from './types'
+import { IPreparedDataType, IUserTyping, IUsersName } from './types'
+import { findTypingIdAvailable } from './helper'
 
 // Debug logger.
 const port_log = debug('listen:port')
@@ -27,12 +28,6 @@ const errorResponseData = {
 const user = new UserLinkedList()
 
 io.on('connection', socket => {
-  /*
-  // Join into a room.
-  socket.on('join-room', (room: string) => {
-    socket.join(room);
-  });
-  */
 
   // Create a new User.
   socket.on('new_user', (name: string) => {
@@ -147,6 +142,53 @@ io.on('connection', socket => {
     socket.to(chatID).emit('updated-connected-users', obj, root?.value.messages)
   })
 
+  socket.on('user_typing_message_status', (obj: IUserTyping, userId: string, accessId: string, userName: string) => {
+    let current = user.head;
+
+    while (current) {
+      if (current.value.accessId === accessId) {
+
+        const find = findTypingIdAvailable({ typingId: obj.id }, current.value.messages as MessageLinkedList);
+        
+        if (obj.status) {
+          if (!find) {
+            current.value.messages?.push({
+              type: 'typing',
+              message: `${userName} is typing`,
+              timeStamp: new Date(),
+              userId,
+              userName,
+              typingId: obj.id
+            });
+
+          }
+        } else {
+          if (find) {
+            // Here I need to write the implementation of removing the message element.
+            const newMessage = new MessageLinkedList();
+
+            let currentMsg = current?.value?.messages?.head;
+            while (currentMsg) {
+              if (currentMsg.value.typingId !== obj.id) {
+                newMessage.push(currentMsg.value);
+              }
+              currentMsg = currentMsg.next;
+            }
+
+            current.value.messages = newMessage;
+          }
+        }
+
+        break;
+      }
+
+      current = current.next;
+    }
+
+    socket.to(accessId).emit('responding-typing-message', current?.value.messages);
+  });
+
+  // Sending a message to all the connected user to a perticular room.
   socket.on('send_message', (msg: IValues, accessId: string) => {
     let current = user.head
 

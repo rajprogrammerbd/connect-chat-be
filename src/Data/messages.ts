@@ -11,6 +11,7 @@ export type IValues = {
   userId: string
   message: string
   timeStamp: Date
+  typingId?: string
 }
 
 class MessageNode {
