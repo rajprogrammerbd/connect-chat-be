@@ -6,6 +6,8 @@
   "author": "Raj Dutta <rd2249619@gmail.com>",
   "license": "MIT",
   "scripts": {
+    "prestart": "yarn install && yarn build",
+    "start": "node dist/index.js",
     "dev": "nodemon ./src/index.ts",
     "test": "jest --coverage",
     "test:watch": "jest --coverage --watchAll",

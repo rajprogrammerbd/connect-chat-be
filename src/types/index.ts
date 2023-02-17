@@ -18,6 +18,6 @@ export type IPreparedDataType = {
 }
 
 export type IUserTyping = {
-  status: boolean;
-  id: string;
+  status: boolean
+  id: string
 }

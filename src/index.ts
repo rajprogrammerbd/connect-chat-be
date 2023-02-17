@@ -28,7 +28,6 @@ const errorResponseData = {
 const user = new UserLinkedList()
 
 io.on('connection', socket => {
-
   // Create a new User.
   socket.on('new_user', (name: string) => {
     const msg = new MessageLinkedList()
@@ -142,51 +141,57 @@ io.on('connection', socket => {
     socket.to(chatID).emit('updated-connected-users', obj, root?.value.messages)
   })
 
-  socket.on('user_typing_message_status', (obj: IUserTyping, userId: string, accessId: string, userName: string) => {
-    let current = user.head;
+  socket.on(
+    'user_typing_message_status',
+    (obj: IUserTyping, userId: string, accessId: string, userName: string) => {
+      let current = user.head
 
-    while (current) {
-      if (current.value.accessId === accessId) {
+      while (current) {
+        if (current.value.accessId === accessId) {
+          const find = findTypingIdAvailable(
+            { typingId: obj.id },
+            current.value.messages as MessageLinkedList
+          )
 
-        const find = findTypingIdAvailable({ typingId: obj.id }, current.value.messages as MessageLinkedList);
-        
-        if (obj.status) {
-          if (!find) {
-            current.value.messages?.push({
-              type: 'typing',
-              message: `${userName} is typing`,
-              timeStamp: new Date(),
-              userId,
-              userName,
-              typingId: obj.id
-            });
-
-          }
-        } else {
-          if (find) {
-            // Here I need to write the implementation of removing the message element.
-            const newMessage = new MessageLinkedList();
-
-            let currentMsg = current?.value?.messages?.head;
-            while (currentMsg) {
-              if (currentMsg.value.typingId !== obj.id) {
-                newMessage.push(currentMsg.value);
-              }
-              currentMsg = currentMsg.next;
+          if (obj.status) {
+            if (!find) {
+              current.value.messages?.push({
+                type: 'typing',
+                message: `${userName} is typing`,
+                timeStamp: new Date(),
+                userId,
+                userName,
+                typingId: obj.id,
+              })
             }
+          } else {
+            if (find) {
+              // Here I need to write the implementation of removing the message element.
+              const newMessage = new MessageLinkedList()
 
-            current.value.messages = newMessage;
+              let currentMsg = current?.value?.messages?.head
+              while (currentMsg) {
+                if (currentMsg.value.typingId !== obj.id) {
+                  newMessage.push(currentMsg.value)
+                }
+                currentMsg = currentMsg.next
+              }
+
+              current.value.messages = newMessage
+            }
           }
+
+          break
         }
 
-        break;
+        current = current.next
       }
 
-      current = current.next;
+      socket
+        .to(accessId)
+        .emit('responding-typing-message', current?.value.messages)
     }
-
-    socket.to(accessId).emit('responding-typing-message', current?.value.messages);
-  });
+  )
 
   // Sending a message to all the connected user to a perticular room.
   socket.on('send_message', (msg: IValues, accessId: string) => {
