@@ -21,3 +21,9 @@ export type IUserTyping = {
   status: boolean
   id: string
 }
+
+export type ISocketsId = {
+  id: string;
+  userId: string;
+  accessId: string;
+}

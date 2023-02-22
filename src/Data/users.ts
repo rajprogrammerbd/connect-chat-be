@@ -173,6 +173,33 @@ class UserLinkedList {
 
     return res as IAddToExistedUser
   }
+
+  isUserAvailable(userId: string): false | IValues {
+    let current = this.head;
+
+    while (current) {
+      if (current.value.userId === userId) {
+        return current.value;
+      }
+      current = current.next;
+    }
+
+    return false;
+  }
+
+  isUserAdmin(userId: string, accessId: string): false | IValues {
+    let current = this.head;
+
+    while (current) {
+      if (current.value.accessId === accessId && current.value.userId === userId) {
+        return current.value;
+      }
+
+      current = current.next;
+    }
+
+    return false;
+  }
 }
 
 export default UserLinkedList
