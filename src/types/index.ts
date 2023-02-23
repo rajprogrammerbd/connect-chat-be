@@ -23,7 +23,7 @@ export type IUserTyping = {
 }
 
 export type ISocketsId = {
-  id: string;
-  userId: string;
-  accessId: string;
+  id: string
+  userId: string
+  accessId: string
 }

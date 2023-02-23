@@ -175,30 +175,33 @@ class UserLinkedList {
   }
 
   isUserAvailable(userId: string): false | IValues {
-    let current = this.head;
+    let current = this.head
 
     while (current) {
       if (current.value.userId === userId) {
-        return current.value;
+        return current.value
       }
-      current = current.next;
+      current = current.next
     }
 
-    return false;
+    return false
   }
 
   isUserAdmin(userId: string, accessId: string): false | IValues {
-    let current = this.head;
+    let current = this.head
 
     while (current) {
-      if (current.value.accessId === accessId && current.value.userId === userId) {
-        return current.value;
+      if (
+        current.value.accessId === accessId &&
+        current.value.userId === userId
+      ) {
+        return current.value
       }
 
-      current = current.next;
+      current = current.next
     }
 
-    return false;
+    return false
   }
 }
 

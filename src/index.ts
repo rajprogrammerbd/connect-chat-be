@@ -20,13 +20,8 @@ const io = new Server(PORT as number, {
   },
 })
 
-const errorResponseData = {
-  connection: false,
-  message: 'Failed to connect (Invalid request)',
-}
-
-let user = new UserLinkedList();
-const listOfSockets: ISocketsId[] = [];
+let user = new UserLinkedList()
+const listOfSockets: ISocketsId[] = []
 
 io.on('connection', socket => {
   // Create a new User.
@@ -35,7 +30,7 @@ io.on('connection', socket => {
     const userId = uuidv4()
     const accessId = uuidv4()
 
-    listOfSockets.push({ id: socket.id, userId: userId, accessId });
+    listOfSockets.push({ id: socket.id, userId: userId, accessId })
 
     msg.push({
       type: 'user_joined',
@@ -43,7 +38,7 @@ io.on('connection', socket => {
       userId,
       message: `${name} started the chat`,
       timeStamp: new Date(),
-    });
+    })
 
     const newUser = user.push(
       {
@@ -87,7 +82,7 @@ io.on('connection', socket => {
         connectedAccessId: chatID,
       })
 
-      listOfSockets.push({ id: socket.id, userId: userId, accessId: chatID });
+      listOfSockets.push({ id: socket.id, userId: userId, accessId: chatID })
       socket.join(addNewUser.connectedAccessId as string)
 
       socket.emit('recived_new_existed_user', {
@@ -101,7 +96,10 @@ io.on('connection', socket => {
         connectedAccessId: addNewUser.connectedAccessId,
       })
     } else {
-      socket.emit('failed_response', errorResponseData)
+      socket.emit('failed_response', {
+        connection: false,
+        message: 'Chat connection not found',
+      })
     }
   })
 
@@ -212,91 +210,117 @@ io.on('connection', socket => {
 
     socket.to(accessId).emit('update-all-messages', current?.value.messages)
     // ----------------------------------------------------------
-  });
+  })
 
   // This connection is for who refreshed and got a new socket id.
   socket.on('change_socket_oldId', (oldSocketId: string) => {
-    const findIndex = listOfSockets.findIndex((o: ISocketsId) => o.id === oldSocketId);
+    const findIndex = listOfSockets.findIndex(
+      (o: ISocketsId) => o.id === oldSocketId
+    )
 
     if (findIndex !== -1) {
-      listOfSockets[findIndex].id = socket.id;
+      listOfSockets[findIndex].id = socket.id
     }
-  });
+  })
 
   socket.on('disconnect', () => {
-    const foundIdArr = listOfSockets.filter((o: ISocketsId) => o.id === socket.id);
+    const foundIdArr = listOfSockets.filter(
+      (o: ISocketsId) => o.id === socket.id
+    )
 
     if (foundIdArr.length === 1) {
-      const isUserAvailable = user.isUserAvailable(foundIdArr[0].userId);
+      const isUserAvailable = user.isUserAvailable(foundIdArr[0].userId)
 
       // If we find a user.
       if (isUserAvailable) {
-        const isUserAdmin = user.isUserAdmin(foundIdArr[0].userId, foundIdArr[0].accessId);
+        const isUserAdmin = user.isUserAdmin(
+          foundIdArr[0].userId,
+          foundIdArr[0].accessId
+        )
 
         if (isUserAdmin) {
-          const connectedUserList = isUserAdmin.connectedUserNames;
+          const connectedUserList = isUserAdmin.connectedUserNames
 
           if (connectedUserList !== undefined) {
             for (let i = 0; i < connectedUserList.length; i++) {
-              const myNewUser = new UserLinkedList();
-              let myCurrent = user.head;
-              
+              const myNewUser = new UserLinkedList()
+              let myCurrent = user.head
+
               while (myCurrent) {
                 if (myCurrent.value.userId !== connectedUserList[i].userId) {
-                  myNewUser.push(myCurrent.value);
+                  myNewUser.push(myCurrent.value)
                 }
 
-                myCurrent = myCurrent.next;
+                myCurrent = myCurrent.next
               }
 
-              user = myNewUser;
+              user = myNewUser
             }
 
-            socket.to(foundIdArr[0].accessId).emit('admin_closed', { message: 'Admin user closed the chat' });
-            return;
+            socket
+              .to(foundIdArr[0].accessId)
+              .emit('admin_closed', { message: 'Admin user closed the chat' })
+            return
           }
         }
 
-        let current = user.head;
-        const { userId, userName } = isUserAvailable;
+        let current = user.head
+        const { userId, userName } = isUserAvailable
 
         while (current) {
           // Add a message
           if (current.value.accessId === foundIdArr[0].accessId) {
-            const idx = current.value.connectedUserNames?.findIndex((val: IUsersName) => val.userId === foundIdArr[0].userId);
-            current.value.connectedUserNames?.splice(idx as number, 1);
+            const idx = current.value.connectedUserNames?.findIndex(
+              (val: IUsersName) => val.userId === foundIdArr[0].userId
+            )
+            current.value.connectedUserNames?.splice(idx as number, 1)
             current.value.messages?.push({
               userId,
               message: `${userName} has left the chat`,
               timeStamp: new Date(),
               type: 'user_removed',
-              userName
-            });
-            break;
+              userName,
+            })
+            break
           }
 
-          current = current.next;
+          current = current.next
         }
 
-        let present = user.head;
-        const newUser = new UserLinkedList();
+        let present = user.head
+        const newUser = new UserLinkedList()
 
         while (present) {
-          if ( present.value.userId !== foundIdArr[0].userId ) {
-              newUser.push(present.value);
+          if (present.value.userId !== foundIdArr[0].userId) {
+            newUser.push(present.value)
           }
-          present = present.next;
+          present = present.next
         }
 
-        user = newUser;
+        user = newUser
 
-        const findIndex = listOfSockets.findIndex((o: ISocketsId) => o.id === socket.id);
-        listOfSockets.splice(findIndex, 1);
+        const findIndex = listOfSockets.findIndex(
+          (o: ISocketsId) => o.id === socket.id
+        )
+        listOfSockets.splice(findIndex, 1)
 
-        socket.to(foundIdArr[0].accessId).emit('update-message-connectedUser', current?.value.messages, current?.value.connectedUserNames);
+        socket
+          .emit(
+            'update-message-connectedUser',
+            current?.value.messages,
+            current?.value.connectedUserNames
+          )
+
+        socket
+          .to(foundIdArr[0].accessId)
+          .emit(
+            'update-message-connectedUser',
+            current?.value.messages,
+            current?.value.connectedUserNames
+          )
       }
     }
-  });
+  })
 })
 
 consola.success('Server is running')
