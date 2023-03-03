@@ -1,4 +1,4 @@
-FROM node:18.14.2-alpine3.17
+FROM node:buster
 RUN addgroup teams
 RUN adduser -D -G teams Raj
 WORKDIR /app
@@ -10,4 +10,4 @@ RUN yarn install
 RUN yarn run test
 RUN yarn run build
 RUN yarn run lint
-ENTRYPOINT [ "yarn", "run", "test" ]
+ENTRYPOINT [ "yarn", "run", "dev" ]

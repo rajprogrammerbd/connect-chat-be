@@ -30,4 +30,3 @@ jobs:
     - run: yarn run lint
     - run: yarn run format
     - run: docker build -t connect-chat-be .
-    - run: docker run connect-chat-be
