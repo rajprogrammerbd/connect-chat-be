@@ -304,12 +304,11 @@ io.on('connection', socket => {
         )
         listOfSockets.splice(findIndex, 1)
 
-        socket
-          .emit(
-            'update-message-connectedUser',
-            current?.value.messages,
-            current?.value.connectedUserNames
-          )
+        socket.emit(
+          'update-message-connectedUser',
+          current?.value.messages,
+          current?.value.connectedUserNames
+        )
 
         socket
           .to(foundIdArr[0].accessId)
