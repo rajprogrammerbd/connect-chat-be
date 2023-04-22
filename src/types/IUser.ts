@@ -1,4 +1,4 @@
-interface IUser {
+type IUser = {
     userId: string;
     chatId: string;
     userName: string;
