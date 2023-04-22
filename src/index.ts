@@ -32,7 +32,7 @@ io.on('connection', socket => {
 
     listOfSockets.push({ id: socket.id, userId: userId, accessId })
 
-    msg.push({
+    msg.pushMsg({
       type: 'user_joined',
       userName: name,
       userId,
@@ -157,7 +157,7 @@ io.on('connection', socket => {
 
           if (obj.status) {
             if (!find) {
-              current.value.messages?.push({
+              current.value.messages?.pushMsg({
                 type: 'typing',
                 message: `${userName} is typing`,
                 timeStamp: new Date(),
@@ -174,7 +174,7 @@ io.on('connection', socket => {
               let currentMsg = current?.value?.messages?.head
               while (currentMsg) {
                 if (currentMsg.value.typingId !== obj.id) {
-                  newMessage.push(currentMsg.value)
+                  newMessage.pushMsg(currentMsg.value)
                 }
                 currentMsg = currentMsg.next
               }
@@ -201,7 +201,7 @@ io.on('connection', socket => {
 
     while (current) {
       if (current.value.accessId === accessId) {
-        current.value.messages?.push(msg)
+        current.value.messages?.pushMsg(msg)
         break
       }
 
@@ -274,7 +274,7 @@ io.on('connection', socket => {
               (val: IUsersName) => val.userId === foundIdArr[0].userId
             )
             current.value.connectedUserNames?.splice(idx as number, 1)
-            current.value.messages?.push({
+            current.value.messages?.pushMsg({
               userId,
               message: `${userName} has left the chat`,
               timeStamp: new Date(),

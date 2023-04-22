@@ -37,7 +37,7 @@ class MessageLinkedList {
     this.length = 0
   }
 
-  push(val: IValues) {
+  pushMsg(val: IValues) {
     const newNode = new MessageNode(val)
 
     if (this.length === 0) {

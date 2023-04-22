@@ -143,7 +143,7 @@ class UserLinkedList {
 
     while (current) {
       if (current.value.accessId === val.connectedAccessId) {
-        current.value.messages?.push({
+        current.value.messages?.pushMsg({
           type: 'user_joined', // user_joined
           message: `${newUser?.value.userName} joined to the chat`,
           userName: newUser?.value.userName as string,
