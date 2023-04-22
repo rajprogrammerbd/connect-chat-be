@@ -1,5 +1,5 @@
-import dotenv from 'dotenv';
-dotenv.config();
+import dotenv from 'dotenv'
+dotenv.config()
 // import { v4 as uuidv4 } from 'uuid';
 // import UserLinkedList from './Data/users';
 // import MessageLinkedList, { IValues } from './Data/messages';
@@ -18,19 +18,19 @@ if (cluster.isPrimary) {
     cluster.fork()
   }
 } else {
-    // Debug logger.
-    const port_log = debug('listen:port')
-    const PORT = process.env.PORT || 3001
+  // Debug logger.
+  const port_log = debug('listen:port')
+  const PORT = process.env.PORT || 3001
 
-    const io = new Server(PORT as number, {
-        cors: {
-          origin: [`${process.env.FE_ENDPOINT_LINK}`],
-        },
-      })
+  const io = new Server(PORT as number, {
+    cors: {
+      origin: [`${process.env.FE_ENDPOINT_LINK}`],
+    },
+  })
 
-      io.on('connection', (socket) => {
-        socket.send('connected successfully');
-      });
+  io.on('connection', socket => {
+    socket.send('connected successfully')
+  })
 
   consola.success('Server is running')
   port_log(`Server is running at ws://localhost:${PORT}`)
