@@ -187,8 +187,8 @@ class ActiveUsers extends ActiveChatsHash {
   }
 
   startTyping(chatId: string, userId: string) {
-    const user = this.userExisted(userId, chatId);
-    const chat = this.findChats(chatId);
+    const user = this.userExisted(userId, chatId)
+    const chat = this.findChats(chatId)
 
     if (!user) return null
     if (!chat) return null
@@ -264,7 +264,7 @@ class ActiveUsers extends ActiveChatsHash {
     } else if (type === Msg_Types.removed) {
       obj.message = `${obj.userName} leave the chat`
       findChats[2].total = findChats[2].total - 1
-    }  else if (type === Msg_Types.started_chat) {
+    } else if (type === Msg_Types.started_chat) {
       obj.message = `${obj.userName} started the chat`
     } else if (type === Msg_Types.msg) {
       obj.message = `${msg}`
@@ -354,16 +354,16 @@ class ActiveUsers extends ActiveChatsHash {
   }
 
   getSpecificUser(chatId: string, userId: string): IUser | null {
-    let current = this.head;
+    let current = this.head
 
     while (current) {
       if (current.value?.chatId === chatId && current.value.userId === userId) {
-        return current.value;
+        return current.value
       }
-      current = current.next;
+      current = current.next
     }
 
-    return null;
+    return null
   }
 }
 
