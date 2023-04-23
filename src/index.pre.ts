@@ -1,3 +1,4 @@
+/*
 import dotenv from 'dotenv'
 dotenv.config()
 
@@ -324,3 +325,4 @@ io.on('connection', socket => {
 
 consola.success('Server is running')
 port_log(`Server is running at http://localhost:${PORT}`)
+*/

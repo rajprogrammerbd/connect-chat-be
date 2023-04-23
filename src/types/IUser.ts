@@ -1,8 +1,8 @@
 type IUser = {
-    userId: string;
-    chatId: string;
-    userName: string;
-    isAdmin: boolean;
+  userId: string
+  chatId: string
+  userName: string
+  isAdmin: boolean
 }
 
-export default IUser;
+export default IUser

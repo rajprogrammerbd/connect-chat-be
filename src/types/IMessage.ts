@@ -8,32 +8,31 @@ export type Msg_Type =
   | 'removed_typing'
 
 export enum Msg_Types {
-msg = 'message',
-join = 'user_joined',
-removed = 'user_removed',
-typing = 'typing',
-rv_typing = 'removed_typing',
-started_chat = 'started_chat'
+  msg = 'message',
+  join = 'user_joined',
+  removed = 'user_removed',
+  typing = 'typing',
+  rv_typing = 'removed_typing',
+  started_chat = 'started_chat',
 }
 
-
 export type IMsg = {
-    type: Msg_Type;
-    chatId: string;
-    userName: string;
-    userId: string;
-    message: string;
-    timestamp: string;
+  type: Msg_Type
+  chatId: string
+  userName: string
+  userId: string
+  message: string
+  timestamp: string
 }
 
 class MessageNode {
-  public value: IMsg | null;
-  public next: MessageNode | null;
+  public value: IMsg | null
+  public next: MessageNode | null
 
-  constructor (obj: IMsg) {
-      this.value = obj;
-      this.next = null;
+  constructor(obj: IMsg) {
+    this.value = obj
+    this.next = null
   }
 }
 
-export default MessageNode;
+export default MessageNode
