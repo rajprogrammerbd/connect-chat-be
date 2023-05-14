@@ -7,7 +7,7 @@ import ActiveUsers from './Data/ActiveUsers'
 import socketFailedRespose from './helper'
 import { IResponseUser } from './types'
 import { IMsg } from './types/IMessage'
-import { createServer } from 'node:http'
+import { createServer } from 'http'
 
 const httpServer = createServer()
 
