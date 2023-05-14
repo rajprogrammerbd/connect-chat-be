@@ -718,10 +718,22 @@
   dependencies:
     "@sinonjs/commons" "^2.0.0"
 
+"@socket.io/cluster-adapter@^0.2.2":
+  version "0.2.2"
+  resolved "https://registry.yarnpkg.com/@socket.io/cluster-adapter/-/cluster-adapter-0.2.2.tgz#2b070774d3c157b4a4a33cde21ae0c624a4cec93"
+  integrity sha512-/tNcY6qQx0BOgjl4mFk3YxX6pjaPdEyeWhP88Ea9gTlISY4SfA7t8VxbryeAs5/9QgXzChlvSN/i37Gog3kWag==
+  dependencies:
+    debug "~4.3.1"
+
 "@socket.io/component-emitter@~3.1.0":
   version "3.1.0"
   resolved "https://registry.npmjs.org/@socket.io/component-emitter/-/component-emitter-3.1.0.tgz"
   integrity sha512-+9jVqKhRSpsc591z5vX+X5Yyw+he/HCB4iQ/RYxw35CEPaY1gnsNE43nf9n9AaYjAQrTiI/mOwKUKdUs9vf7Xg==
+
+"@socket.io/sticky@^1.0.3":
+  version "1.0.3"
+  resolved "https://registry.yarnpkg.com/@socket.io/sticky/-/sticky-1.0.3.tgz#81cba46d9653ddce93a80574a04f5ba9886cdeca"
+  integrity sha512-4uPG2He1FMgBSjavK/yIHWEno1AhzQD1R8MmLBeqp5cI7lwtvJPZ+QZoV3lOZOTX1W64a95wV4xEZXhnOscUEQ==
 
 "@tootallnate/once@1":
   version "1.1.2"

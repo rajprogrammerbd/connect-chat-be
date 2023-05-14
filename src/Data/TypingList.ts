@@ -1,4 +1,5 @@
 import { IMsg } from '../types/IMessage'
+import ActiveSockets from './ActiveSocket'
 
 class TypingNode {
   public value: IMsg | null
@@ -10,11 +11,13 @@ class TypingNode {
   }
 }
 
-abstract class TypingList {
+abstract class TypingList extends ActiveSockets {
   public typingHead: TypingNode | null
   public typingTail: TypingNode | null
 
   constructor() {
+    super();
+    
     this.typingHead = null
     this.typingTail = null
   }
@@ -84,6 +87,40 @@ abstract class TypingList {
 
   removeTypingList(userId: string): boolean {
     let res = false
+
+    while (this.typingHead?.value?.userId === userId) {
+      res = true
+      const next = this.typingHead.next
+
+      if (next) {
+        this.typingHead = next
+      } else {
+        this.typingHead = null
+        this.typingTail = this.typingHead
+      }
+    }
+
+    let current = this.typingHead
+
+    while (current) {
+      if (current.next !== null && current.next.value?.userId === userId) {
+        res = true
+        const next = current.next.next
+
+        if (next) {
+          current.next = next
+        } else {
+          current.next = null
+          this.typingTail = current
+        }
+      } else {
+        current = current.next
+      }
+    }
+
+    return res
+    /*
+    let res = false
     let current = this.typingHead
 
     if (current?.value?.userId === userId) {
@@ -115,6 +152,7 @@ abstract class TypingList {
     }
 
     return res
+    */
   }
 
   pushTypingList(obj: IMsg): TypingNode | null {

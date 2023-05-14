@@ -18,6 +18,8 @@
     "format": "prettier --ignore-path .gitignore --write \"**/*.+(js|ts|json)\""
   },
   "dependencies": {
+    "@socket.io/cluster-adapter": "^0.2.2",
+    "@socket.io/sticky": "^1.0.3",
     "consola": "^2.15.3",
     "debug": "^4.3.4",
     "dotenv": "^16.0.3",
