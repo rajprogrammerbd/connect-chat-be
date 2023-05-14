@@ -1,22 +1,14 @@
-import MessageLinkedList from '../Data/messages'
+import { Socket } from 'socket.io'
+import { DefaultEventsMap } from 'socket.io/dist/typed-events'
 
-type IFind = {
-  typingId: string
+function socketFailedRespose(
+  socket: Socket<DefaultEventsMap, DefaultEventsMap, DefaultEventsMap>,
+  message: string
+) {
+  socket.emit('failed_response', {
+    connection: false,
+    message,
+  })
 }
 
-export function findTypingIdAvailable(
-  obj: IFind,
-  list: MessageLinkedList
-): boolean {
-  let currentNode = list.head
-
-  while (currentNode) {
-    if (currentNode.value.typingId === obj.typingId) {
-      return true
-    }
-
-    currentNode = currentNode.next
-  }
-
-  return false
-}
+export default socketFailedRespose

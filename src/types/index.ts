@@ -1,29 +1,12 @@
-import MessageLinkedList from '../Data/messages'
+import { IMsg } from './IMessage'
+import IUser from './IUser'
 
-export type IUsersName = {
-  name: string
-  userId: string
-  connectedAccessId: string
-}
-
-export type IPreparedDataType = {
+export type IResponseUser = {
   connection: boolean
   message: string
-  userId?: string
-  connectedAccessId?: string
-  accessId?: string
-  name?: string
-  userIds?: IUsersName[]
-  messages?: MessageLinkedList
-}
-
-export type IUserTyping = {
-  status: boolean
-  id: string
-}
-
-export type ISocketsId = {
-  id: string
+  chatId: string
+  connectedUsersList: IUser[]
+  messages: IMsg[]
+  name: string
   userId: string
-  accessId: string
 }

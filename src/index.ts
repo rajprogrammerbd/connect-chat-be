@@ -1,326 +1,214 @@
 import dotenv from 'dotenv'
 dotenv.config()
-
 import { Server } from 'socket.io'
 import consola from 'consola'
 import debug from 'debug'
-import { v4 as uuidv4 } from 'uuid'
-import UserLinkedList from './Data/users'
-import MessageLinkedList, { IValues } from './Data/messages'
-import { IPreparedDataType, ISocketsId, IUserTyping, IUsersName } from './types'
-import { findTypingIdAvailable } from './helper'
+import ActiveUsers from './Data/ActiveUsers'
+import socketFailedRespose from './helper'
+import { IResponseUser } from './types'
+import { IMsg } from './types/IMessage'
+import { createServer } from 'node:http'
 
-// Debug logger.
-const port_log = debug('listen:port')
-const PORT = process.env.PORT || 3001
+const httpServer = createServer()
 
-const io = new Server(PORT as number, {
+const io = new Server(httpServer, {
   cors: {
     origin: [`${process.env.FE_ENDPOINT_LINK}`],
   },
 })
 
-let user = new UserLinkedList()
-const listOfSockets: ISocketsId[] = []
+const users = new ActiveUsers()
 
 io.on('connection', socket => {
-  // Create a new User.
+  // Add a new user to the chat.
   socket.on('new_user', (name: string) => {
-    const msg = new MessageLinkedList()
-    const userId = uuidv4()
-    const accessId = uuidv4()
+    const newUser = users.adminChatUser(name, socket.id)
 
-    listOfSockets.push({ id: socket.id, userId: userId, accessId })
+    if (newUser !== null && newUser.value !== null) {
+      const { chatId, userId, userName } = newUser.value
 
-    msg.push({
-      type: 'user_joined',
-      userName: name,
-      userId,
-      message: `${name} started the chat`,
-      timeStamp: new Date(),
-    })
+      const connectedUsersList = users.returnAllConnectedUser(chatId)
+      const allMessages = users.getAllMessages(userId, chatId)
 
-    const newUser = user.push(
-      {
-        accessId: accessId,
-        userId,
-        userName: name,
-        messages: new MessageLinkedList(),
-        connectedAccessId: '',
-        connectedUserNames: [{ name, userId, connectedAccessId: '' }],
-      },
-      msg
-    )
-
-    const res: IPreparedDataType = {
-      connection: true,
-      message: 'Connection is successed',
-      accessId: accessId,
-      connectedAccessId: newUser?.value.connectedAccessId,
-      messages: newUser?.value.messages,
-      name: newUser?.value.userName,
-      userId: newUser?.value.userId,
-      userIds: newUser?.value.connectedUserNames,
-    }
-
-    socket.join(res.accessId as string)
-
-    socket.emit('receive_new_connection', res)
-  })
-
-  // added a existed user
-  socket.on('add_new_existed', (name: string, chatID: string) => {
-    const isUserExisted = user.find(chatID)
-    const userId = uuidv4()
-    const accessIdUnique = uuidv4()
-
-    if (isUserExisted) {
-      const addNewUser = user.addToAdmin({
-        accessId: accessIdUnique,
-        userId: userId,
-        userName: name,
-        connectedAccessId: chatID,
-      })
-
-      listOfSockets.push({ id: socket.id, userId: userId, accessId: chatID })
-      socket.join(addNewUser.connectedAccessId as string)
-
-      socket.emit('recived_new_existed_user', {
-        connection: true,
-        message: 'Connection is successed',
-        accessId: addNewUser.accessId,
-        userId: addNewUser.userId,
-        name: addNewUser.name,
-        messages: addNewUser.messages,
-        userIds: addNewUser.userIds,
-        connectedAccessId: addNewUser.connectedAccessId,
-      })
-    } else {
-      socket.emit('failed_response', {
-        connection: false,
-        message: 'Chat connection not found',
-      })
-    }
-  })
-
-  // Return the data after refresh
-  socket.on(
-    'retrieve_info_of_refreshed_user',
-    (userId: string, accessId: string, connectedAccessId: string) => {
-      const res = user.lookForAUser(userId, accessId, connectedAccessId)
-
-      const joined = connectedAccessId === '' ? accessId : connectedAccessId
-
-      socket.join(joined)
-
-      if (res !== false) {
-        socket.emit('refreshed_new_existed_user', {
+      if (allMessages) {
+        const res: IResponseUser = {
           connection: true,
           message: 'Connection is successed',
-          accessId: res.accessId,
-          userId: res.userId,
-          name: res.userName,
-          messages: res.messages,
-          userIds: res.connectedUserNames,
-          connectedAccessId: res.connectedAccessId,
-          connectedUserNames: res.connectedUserNames,
-        })
-      }
-    }
-  )
+          chatId,
+          connectedUsersList,
+          messages: allMessages,
+          name: userName,
+          userId,
+        }
 
-  // Updated connected user.
-  socket.on('update-connected-user', (obj: IUsersName, chatID: string) => {
-    // Here I need to find the root user and send the message.
-    let root = user.head
-    while (root) {
-      if (root.value.accessId === chatID) {
-        break
-      }
-      root = root.next
-    }
+        socket.join(res.chatId)
 
-    socket.to(chatID).emit('updated-connected-users', obj, root?.value.messages)
+        socket.emit('receive_new_connection', res)
+      } else {
+        socketFailedRespose(socket, 'Failed to retrive all messages')
+      }
+    } else {
+      socketFailedRespose(socket, 'Failed to create a new User')
+    }
   })
 
   socket.on(
-    'user_typing_message_status',
-    (obj: IUserTyping, userId: string, accessId: string, userName: string) => {
-      let current = user.head
+    'refreshed_user',
+    (chatId: string, userId: string, name: string) => {
+      const findSocket = users.findSocketByChatId(chatId, userId)
 
-      while (current) {
-        if (current.value.accessId === accessId) {
-          const find = findTypingIdAvailable(
-            { typingId: obj.id },
-            current.value.messages as MessageLinkedList
-          )
+      if (!findSocket) {
+        const adminUser = users.lookForAdminChatUser(chatId)
 
-          if (obj.status) {
-            if (!find) {
-              current.value.messages?.push({
-                type: 'typing',
-                message: `${userName} is typing`,
-                timeStamp: new Date(),
-                userId,
-                userName,
-                typingId: obj.id,
-              })
-            }
-          } else {
-            if (find) {
-              // Here I need to write the implementation of removing the message element.
-              const newMessage = new MessageLinkedList()
+        if (adminUser) {
+          const newUser = users.userAddToExistedChat(name, chatId, socket.id)
 
-              let currentMsg = current?.value?.messages?.head
-              while (currentMsg) {
-                if (currentMsg.value.typingId !== obj.id) {
-                  newMessage.push(currentMsg.value)
-                }
-                currentMsg = currentMsg.next
-              }
+          if (newUser && newUser.value !== null) {
+            const { chatId, userId, userName } = newUser.value
 
-              current.value.messages = newMessage
-            }
-          }
+            const connectedUsersList = users.returnAllConnectedUser(chatId)
+            const allMessages = users.getAllMessages(userId, chatId)
 
-          break
-        }
+            socket.join(newUser.value.chatId)
 
-        current = current.next
-      }
-
-      socket
-        .to(accessId)
-        .emit('responding-typing-message', current?.value.messages)
-    }
-  )
-
-  // Sending a message to all the connected user to a perticular room.
-  socket.on('send_message', (msg: IValues, accessId: string) => {
-    let current = user.head
-
-    while (current) {
-      if (current.value.accessId === accessId) {
-        current.value.messages?.push(msg)
-        break
-      }
-
-      current = current.next
-    }
-
-    socket.to(accessId).emit('update-all-messages', current?.value.messages)
-    // ----------------------------------------------------------
-  })
-
-  // This connection is for who refreshed and got a new socket id.
-  socket.on('change_socket_oldId', (oldSocketId: string) => {
-    const findIndex = listOfSockets.findIndex(
-      (o: ISocketsId) => o.id === oldSocketId
-    )
-
-    if (findIndex !== -1) {
-      listOfSockets[findIndex].id = socket.id
-    }
-  })
-
-  socket.on('disconnect', () => {
-    const foundIdArr = listOfSockets.filter(
-      (o: ISocketsId) => o.id === socket.id
-    )
-
-    if (foundIdArr.length === 1) {
-      const isUserAvailable = user.isUserAvailable(foundIdArr[0].userId)
-
-      // If we find a user.
-      if (isUserAvailable) {
-        const isUserAdmin = user.isUserAdmin(
-          foundIdArr[0].userId,
-          foundIdArr[0].accessId
-        )
-
-        if (isUserAdmin) {
-          const connectedUserList = isUserAdmin.connectedUserNames
-
-          if (connectedUserList !== undefined) {
-            for (let i = 0; i < connectedUserList.length; i++) {
-              const myNewUser = new UserLinkedList()
-              let myCurrent = user.head
-
-              while (myCurrent) {
-                if (myCurrent.value.userId !== connectedUserList[i].userId) {
-                  myNewUser.push(myCurrent.value)
-                }
-
-                myCurrent = myCurrent.next
-              }
-
-              user = myNewUser
+            const res: IResponseUser = {
+              connection: true,
+              chatId,
+              connectedUsersList,
+              message: 'Connection is successed',
+              messages: allMessages as IMsg[],
+              name: userName,
+              userId,
             }
 
             socket
-              .to(foundIdArr[0].accessId)
-              .emit('admin_closed', { message: 'Admin user closed the chat' })
-            return
+              .to(chatId)
+              .emit('add_new_user_update', connectedUsersList, allMessages)
+
+            socket.emit('recived_new_existed_user', res)
+          } else {
+            socketFailedRespose(socket, 'Failed to create new user')
           }
         }
+      }
+      /*
+    console.log('refreshed_user', chatId, userId, name);
+    const findUser = users.findByChatId(chatId, userId);
 
-        let current = user.head
-        const { userId, userName } = isUserAvailable
+    if (findUser) {
+      // Response
+      if (findUser.isAdmin) {
+        // delete the chat.
+      } else {
+        const newUser = users.userAddToExistedChat(name, chatId, socket.id);
 
-        while (current) {
-          // Add a message
-          if (current.value.accessId === foundIdArr[0].accessId) {
-            const idx = current.value.connectedUserNames?.findIndex(
-              (val: IUsersName) => val.userId === foundIdArr[0].userId
-            )
-            current.value.connectedUserNames?.splice(idx as number, 1)
-            current.value.messages?.push({
-              userId,
-              message: `${userName} has left the chat`,
-              timeStamp: new Date(),
-              type: 'user_removed',
-              userName,
-            })
-            break
-          }
-
-          current = current.next
+        if (newUser && newUser.value !== null) {
+          socket.join(newUser.value.chatId);
+        } else {
+          socketFailedRespose(socket, 'Failed to create new user');
         }
+      }
+    } else {
+      // socket.to(chatId).emit('refreshed_user_res', null);
+    }
+    */
+    }
+  )
 
-        let present = user.head
-        const newUser = new UserLinkedList()
+  // Add existed user
+  socket.on('add_new_existed', (name: string, chatID: string) => {
+    const newUser = users.userAddToExistedChat(name, chatID, socket.id)
 
-        while (present) {
-          if (present.value.userId !== foundIdArr[0].userId) {
-            newUser.push(present.value)
-          }
-          present = present.next
-        }
+    if (newUser && newUser.value !== null) {
+      const { chatId, userId, userName } = newUser.value
 
-        user = newUser
+      const connectedUsersList = users.returnAllConnectedUser(chatId)
+      const allMessages = users.getAllMessages(userId, chatId)
 
-        const findIndex = listOfSockets.findIndex(
-          (o: ISocketsId) => o.id === socket.id
-        )
-        listOfSockets.splice(findIndex, 1)
+      socket.join(newUser.value.chatId)
 
-        socket.emit(
-          'update-message-connectedUser',
-          current?.value.messages,
-          current?.value.connectedUserNames
-        )
+      const res: IResponseUser = {
+        connection: true,
+        chatId,
+        connectedUsersList,
+        message: 'Connection is successed',
+        messages: allMessages as IMsg[],
+        name: userName,
+        userId,
+      }
+
+      socket
+        .to(chatID)
+        .emit('add_new_user_update', connectedUsersList, allMessages)
+
+      socket.emit('recived_new_existed_user', res)
+    } else {
+      socketFailedRespose(socket, 'Failed to connect to the chat')
+    }
+  })
+
+  socket.on('send_message', (chatId: string, userId: string, msg: string) => {
+    const sendTextMsg = users.sendTextMsg(chatId, userId, msg)
+    const allMessages = users.getAllMessages(userId, chatId)
+
+    if (sendTextMsg) {
+      socket.to(chatId).emit('update-all-messages', allMessages)
+    } else {
+      socketFailedRespose(socket, 'Failed to send the message')
+    }
+  })
+
+  socket.on('update-msg-user', (chatId: string, userId: string) => {
+    const allMessages = users.getAllMessages(userId, chatId)
+
+    if (allMessages) {
+      socket.to(chatId).emit('update-all-messages', allMessages)
+    } else {
+      socketFailedRespose(socket, 'Failed to get all the messages')
+    }
+  })
+
+  socket.on('user_typing_message_start', (chatId: string, userId: string) => {
+    users.startTyping(chatId, userId)
+    const allMessages = users.getAllMessages(userId, chatId)
+
+    socket.to(chatId).emit('update-all-messages', allMessages)
+  })
+
+  socket.on('user_typing_message_stop', (chatId: string, userId: string) => {
+    users.stopTyping(chatId, userId)
+    const allMessages = users.getAllMessages(userId, chatId)
+
+    socket.to(chatId).emit('update-all-messages', allMessages)
+  })
+
+  socket.on('disconnect', () => {
+    const result = users.findSocketId(socket.id)
+
+    if (result) {
+      if (result.isAdmin) {
+        socket.to(result.chatId).emit('admin-closed')
+        users.removeUser(result.chatId, result.userId)
+      } else {
+        users.removeUser(result.chatId, result.userId)
+        users.single_socket_remove(result.userId)
+
+        const connectedUsersList = users.returnAllConnectedUser(result.chatId)
+        const allMessages = users.getMessages(result.chatId)
 
         socket
-          .to(foundIdArr[0].accessId)
-          .emit(
-            'update-message-connectedUser',
-            current?.value.messages,
-            current?.value.connectedUserNames
-          )
+          .to(result.chatId)
+          .emit('add_new_user_update', connectedUsersList, allMessages)
       }
     }
   })
 })
 
+// Debug logger.
+const port_log = debug('listen:port')
+const PORT = process.env.PORT || 3001
+
+httpServer.listen(PORT)
+
 consola.success('Server is running')
-port_log(`Server is running at http://localhost:${PORT}`)
+port_log(`Server is running at ws://localhost:${PORT}`)
