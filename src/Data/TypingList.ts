@@ -16,8 +16,8 @@ abstract class TypingList extends ActiveSockets {
   public typingTail: TypingNode | null
 
   constructor() {
-    super();
-    
+    super()
+
     this.typingHead = null
     this.typingTail = null
   }

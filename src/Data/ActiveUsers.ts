@@ -109,11 +109,11 @@ class ActiveUsers extends ActiveChatsHash {
 
     if (user) {
       if (user.value?.isAdmin) {
-        this.multiple_socket_remove(chatId);
+        this.multiple_socket_remove(chatId)
         this.deleteWholeChatBox(chatId)
       } else {
         this.removeTypingList(userId)
-        
+
         if (!user.value) return null
         const { userName } = user.value
 
@@ -123,7 +123,7 @@ class ActiveUsers extends ActiveChatsHash {
         ) {
           if (this.head.value.isAdmin) {
             // delete everything.
-            this.multiple_socket_remove(chatId);
+            this.multiple_socket_remove(chatId)
             this.deleteWholeChatBox(chatId)
           } else {
             const next = this.head.next
@@ -277,7 +277,11 @@ class ActiveUsers extends ActiveChatsHash {
     return res ? true : false
   }
 
-  userAddToExistedChat(name: string, chatId: string, socketId: string): User | null {
+  userAddToExistedChat(
+    name: string,
+    chatId: string,
+    socketId: string
+  ): User | null {
     const findAdminUser = this.lookForAdminChatUser(chatId)
 
     if (!findAdminUser) {
@@ -285,10 +289,10 @@ class ActiveUsers extends ActiveChatsHash {
     }
 
     const userId = randomUUID()
-    const newUser = new User({ userId, chatId, isAdmin: false, userName: name });
+    const newUser = new User({ userId, chatId, isAdmin: false, userName: name })
     this.sendMessage(chatId, userId, name, Msg_Types.join)
 
-    this.socket_push({ userId, chatId, id: socketId, isAdmin: false });
+    this.socket_push({ userId, chatId, id: socketId, isAdmin: false })
 
     newUser.prev = this.tail
 
@@ -309,7 +313,7 @@ class ActiveUsers extends ActiveChatsHash {
     const newUser = new User({ userId, chatId, isAdmin: true, userName: name })
     const message = new MessageList()
 
-    this.socket_push({ id: socketId, userId, chatId, isAdmin: true });
+    this.socket_push({ id: socketId, userId, chatId, isAdmin: true })
     this.setNewMessage(chatId, message, 1)
 
     if (!this.userCount) {

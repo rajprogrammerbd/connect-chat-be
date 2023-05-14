@@ -1,9 +1,8 @@
-
 type ISockets = {
-    id: string;
-    userId: string;
-    chatId: string;
-    isAdmin: boolean;
+  id: string
+  userId: string
+  chatId: string
+  isAdmin: boolean
 }
 
-export default ISockets;
+export default ISockets
