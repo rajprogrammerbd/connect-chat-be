@@ -1,3 +1,4 @@
+console.clear()
 import dotenv from 'dotenv'
 dotenv.config()
 import { Server } from 'socket.io'
@@ -42,7 +43,6 @@ io.on('connection', socket => {
         }
 
         socket.join(res.chatId)
-
         socket.emit('receive_new_connection', res)
       } else {
         socketFailedRespose(socket, 'Failed to retrive all messages')
@@ -91,27 +91,6 @@ io.on('connection', socket => {
           }
         }
       }
-      /*
-    console.log('refreshed_user', chatId, userId, name);
-    const findUser = users.findByChatId(chatId, userId);
-
-    if (findUser) {
-      // Response
-      if (findUser.isAdmin) {
-        // delete the chat.
-      } else {
-        const newUser = users.userAddToExistedChat(name, chatId, socket.id);
-
-        if (newUser && newUser.value !== null) {
-          socket.join(newUser.value.chatId);
-        } else {
-          socketFailedRespose(socket, 'Failed to create new user');
-        }
-      }
-    } else {
-      // socket.to(chatId).emit('refreshed_user_res', null);
-    }
-    */
     }
   )
 
@@ -189,6 +168,7 @@ io.on('connection', socket => {
       if (result.isAdmin) {
         socket.to(result.chatId).emit('admin-closed')
         users.removeUser(result.chatId, result.userId)
+        console.log('done testing', users)
       } else {
         users.removeUser(result.chatId, result.userId)
         users.single_socket_remove(result.userId)

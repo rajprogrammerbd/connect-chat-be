@@ -73,6 +73,7 @@ class ActiveUsers extends ActiveChatsHash {
       } else {
         this.head = null
         this.tail = this.head
+        this.userCount--
       }
     }
 
@@ -89,6 +90,7 @@ class ActiveUsers extends ActiveChatsHash {
         } else {
           current.next = null
           this.tail = current
+          this.userCount--
         }
       } else {
         current = current.next
@@ -133,6 +135,7 @@ class ActiveUsers extends ActiveChatsHash {
             } else {
               this.head = null
               this.tail = null
+              this.userCount = 0
             }
           }
         }
@@ -332,8 +335,9 @@ class ActiveUsers extends ActiveChatsHash {
     }
 
     newUser.prev = this.tail
-
-    if (this.tail === null) return null
+    if (this.tail === null) {
+      return null
+    }
 
     this.tail.next = newUser
     this.tail = newUser
