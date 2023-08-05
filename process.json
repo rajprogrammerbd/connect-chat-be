@@ -1,0 +1,15 @@
+{
+  "apps" : [{
+    "name"   : "connect-chat-be",
+    "script" : "./dist/index.js",
+    "watch": true,
+    "env_production": {
+      "NODE_ENV": "production"
+    },
+    "env_development": {
+      "NODE_ENV": "development"
+    },
+    "exec_mode": "cluster",
+    "instances": "MAX"
+  }]
+}
