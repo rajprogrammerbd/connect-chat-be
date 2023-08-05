@@ -6,7 +6,7 @@
   "author": "Raj Dutta <rd2249619@gmail.com>",
   "license": "MIT",
   "scripts": {
-    "start": "pm2 start process.json",
+    "start": "pm2 start dist/index.js",
     "postinstall": "tsc",
     "dev": "nodemon ./src/index.ts",
     "test": "jest --coverage",
