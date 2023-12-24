@@ -1,20 +1,11 @@
-import mongoose from "mongoose";
-import Users from "./Data/Models/Users";
+// eslint-disable-next-line @typescript-eslint/no-var-requires
+require("dotenv").config();
+console.clear();
 
-const URL = "mongodb://localhost:27017";
-const connection = mongoose.connect(URL);
+import Data from "../src/Data/Events";
 
-connection
-  .then(() => {
-    const newUser = new Users({
-      connection_id: '',
-      email: '',
-      username: '',
-      isRoot: true,
-    });
+const d = new Data();
+d.addUser('raj dutta','rd2249619s@gmail.com', true)
+  .then(obj => console.log('result', obj))
+  .catch(res => console.error(res))
 
-    newUser.save()
-      .then(() => console.log('data is saved'))
-      .catch(er => console.log(`Failed to save `, er))
-  })
-  .catch(er => console.error(er))
