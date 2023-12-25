@@ -34,6 +34,10 @@ const chatSchema = new Schema({
             type: Boolean,
             required: true
         },
+        socket_id: {
+          type: String,
+          required: true,
+        }
       },
     ],
   },

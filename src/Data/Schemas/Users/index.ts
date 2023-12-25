@@ -24,6 +24,10 @@ const userSchema = new Schema({
     required: true,
     min: 1,
     max: 50
+  },
+  socket_id: {
+    type: String,
+    required: true,
   }
 })
 
