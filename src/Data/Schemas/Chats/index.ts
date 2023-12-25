@@ -30,7 +30,7 @@ const chatSchema = new Schema({
             min: 1,
             max: 50
         },
-        isRoot: {
+        is_root: {
             type: Boolean,
             required: true
         },

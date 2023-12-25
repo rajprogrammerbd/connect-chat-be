@@ -5,7 +5,6 @@ console.clear();
 import Data from "../src/Data/Events";
 
 const d = new Data();
-d.addUser('raj dutta','rd2249619s@gmail.com', true)
+d.addUser('Dola1 Dutta','doladutta5r@gmail.com', false, 'def73dd596d9eda12645')
   .then(obj => console.log('result', obj))
   .catch(res => console.error(res))
-

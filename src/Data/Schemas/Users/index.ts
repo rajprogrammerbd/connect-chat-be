@@ -15,7 +15,7 @@ const userSchema = new Schema({
     min: 2,
     max: 60
   },
-  isRoot: {
+  is_root: {
     type: Boolean,
     required: true
 },
