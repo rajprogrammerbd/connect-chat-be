@@ -8,6 +8,7 @@ export type SUCCESS_RESPONSE_USER_CREATE = {
         email: string;
         isRoot: boolean;
         connection_id: string;
+        socket_id: string;
     }
 }
 
@@ -23,14 +24,23 @@ export type SAVEDATA_FN_TYPE_CB = {
     is_root: boolean;
     connection_id: string;
     email: string;
+    socket_id: string;
 }
 
 export type SAVEDATA_FN_TYPE = {
     object: {
         username: string;
         email: string;
-        is_root: boolean
+        is_root: boolean;
+        socket_id: string;
     },
     cb: (o: SAVEDATA_FN_TYPE_CB) => void,
     connection_id: string | null;
+}
+
+export type CREATE_USER_BODY_TYPE = {
+    username: string;
+    email: string;
+    is_root: boolean;
+    connection_id: null | string;
 }
