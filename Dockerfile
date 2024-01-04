@@ -1,13 +1,10 @@
-FROM node:18.14.2-alpine3.17
-RUN addgroup teams
-RUN adduser -D -G teams Raj
+FROM node:21-alpine3.18
 WORKDIR /app
-ENV PORT=5000
-ENV FE_ENDPOINT_LINK=http://localhost:5173
+COPY / .
+ENV FE_ENDPOINT_LINK="http://localhost:8000"
+ENV DATABASE_URL="mongodb://localhost:27017"
+ENV PORT=4000
 ENV DEBUG=*
-COPY / /app/
 RUN yarn install
-RUN yarn run test
-RUN yarn run build
-RUN yarn run lint
-ENTRYPOINT [ "yarn", "run", "dev" ]
+EXPOSE 4000
+CMD ["yarn", "run", "dev"]
