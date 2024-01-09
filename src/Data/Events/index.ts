@@ -1,8 +1,8 @@
+import { FAILED_RESPONSE, FOUND_SUCCESS_BY_USER_BODY, RESOLVE_SOCKET_ID_RESULT, SAVEDATA_FN_TYPE, SUCCESS_RESPONSE_USER_CREATE, TYPE_CHAT_MODEL } from "../../helper/types";
 import { findByConnectedId, findByEmail, findBySocketId, findChatsByConnectionId, generateId } from "../../helper";
 import Users from "../Models/Users";
-import connection from "./data";
-import { FAILED_RESPONSE, FOUND_SUCCESS_BY_USER_BODY, RESOLVE_SOCKET_ID_RESULT, SAVEDATA_FN_TYPE, SUCCESS_RESPONSE_USER_CREATE, TYPE_CHAT_MODEL } from "../../helper/types";                    
 import Chats from "../Models/Chats";
+import connection from "./data";
 
 export default class Data {
     constructor () {
@@ -55,29 +55,26 @@ export default class Data {
     }
 
     protected async findChatsAndUpdate(connection_id: string, username: string, is_root: boolean, socket_id: string) {
-        try {
-            const chat = await findChatsByConnectionId(Chats, connection_id,);
+        const chat = await findChatsByConnectionId(Chats, connection_id,);
+        console.log(chat);
 
-            if (!chat) {
-                return Promise.reject({ statusCode: 500, message: 'Internal Error' });
-            }
-    
-            chat.messages.push({
-                username,
-                connection_id,
-                is_root,
-                message: `${username} joined the chat`,
-                socket_id
-            });
-    
-            const doc = await Chats.findOneAndUpdate({ connection_id }, { messages: chat.messages }, {
-                new: true
-            });
-    
-            return Promise.resolve(doc);
-        } catch (er) {
-            return Promise.reject({ statusCode: 500, message: er });
+        if (!chat) {
+            return Promise.reject({ statusCode: 500, message: 'Internal Error' });
         }
+
+        chat.messages.push({
+            username,
+            connection_id,
+            is_root,
+            message: `${username} joined the chat`,
+            socket_id
+        });
+
+        const doc = await Chats.findOneAndUpdate({ connection_id }, { messages: chat.messages }, {
+            new: true
+        });
+
+        return Promise.resolve(doc);
     }
 
     async addUser(username: string, email: string, is_root = false, connection_id: string | null, socket_id: string): Promise<FAILED_RESPONSE | SUCCESS_RESPONSE_USER_CREATE> {
@@ -99,7 +96,7 @@ export default class Data {
                     if (searchConnectedId) {
                         // save a existing user.
                         const data = await this.saveData({ object: { username, email, is_root, socket_id }, connection_id });
-                        this.findChatsAndUpdate(data.connection_id, data.username, data.is_root, socket_id);
+                        await this.findChatsAndUpdate(data.connection_id, data.username, data.is_root, socket_id);
                         return Promise.resolve({
                             statusCode: 200,
                             body: data
@@ -123,8 +120,7 @@ export default class Data {
                 body: data
             });
         } catch (er) {
-            console.log(er);
-            return Promise.reject({ statusCode: 500, message: "Internal error" });
+            return Promise.reject(er);
         }
     }
 }
