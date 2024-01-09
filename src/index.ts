@@ -37,8 +37,6 @@ io.on('connection', (socket) => {
         await data.removeNonAdminUser(user.email, user.username, user.connection_id, user.is_root, user.socket_id);
       }
     }
-
-    console.log('user not found')
   });
 
   socket.on(CREATE_USER, async (body: CREATE_USER_BODY_TYPE) => {
