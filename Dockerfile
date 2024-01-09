@@ -6,5 +6,6 @@ ENV DATABASE_URL="mongodb://localhost:27017"
 ENV PORT=4000
 ENV DEBUG=*
 RUN yarn install
+RUN npm install -g artillery
 EXPOSE 4000
 CMD ["yarn", "run", "dev"]

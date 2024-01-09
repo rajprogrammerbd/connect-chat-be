@@ -18,6 +18,9 @@ const io = new Server(server, {
 const data = new Data();
 
 io.on('connection', (socket) => {
+  socket.on('hello', (val: string) => {
+    socket.emit('world', val);
+  })
   socket.on(CREATE_USER, async (body: CREATE_USER_BODY_TYPE) => {
     const { email, is_root, username, connection_id } = body;
     // verifying the body object.
