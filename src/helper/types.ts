@@ -11,6 +11,19 @@ export type FOUND_SUCCESS_BY_USER_BODY = {
     socket_id: string;
 }
 
+export type TYPE_MESSAGE_SYNTAX = {
+    username: string;
+    message: string;
+    connection_id: string;
+    is_root: boolean;
+    socket_id: string;
+}
+
+export type TYPE_CHAT_MODEL = {
+    connection_id: string;
+    messages: TYPE_MESSAGE_SYNTAX[];
+}
+
 export type SUCCESS_RESPONSE_USER_CREATE = {
     statusCode: number;
     body: FOUND_SUCCESS_BY_USER_BODY
