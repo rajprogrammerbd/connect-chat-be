@@ -1,5 +1,5 @@
 import { FAILED_RESPONSE, FOUND_SUCCESS_BY_USER_BODY, RESOLVE_SOCKET_ID_RESULT, SAVEDATA_FN_TYPE, SUCCESS_RESPONSE_USER_CREATE, TYPE_CHAT_MODEL } from "../../helper/types";
-import { findByConnectedId, findByEmail, findBySocketId, findChatsByConnectionId, generateId } from "../../helper";
+import { findByConnectedId, findByEmail, findBySocketId, findChatsByConnectionId, generateId, removeUserByEmail } from "../../helper";
 import Users from "../Models/Users";
 import Chats from "../Models/Chats";
 import connection from "./data";
@@ -9,10 +9,51 @@ export default class Data {
         connection.emit("createConnection");
     }
 
-    async searchUserBySocketId(id: string): RESOLVE_SOCKET_ID_RESULT {
-        const user = await findBySocketId(Users, id);
+    async searchUserBySocketId(id: string): Promise<RESOLVE_SOCKET_ID_RESULT | null> {
+        try {
+            const user = await findBySocketId(Users, id);
 
-        return user;
+            return Promise.resolve(user);
+        } catch (er) {
+            return Promise.reject({ status: 500, message: 'Failed to search a user' });
+        }
+    }
+
+    protected async removeAllUsersByConnectionId(connection_id: string) {
+        try {
+            const counted = await Users.deleteMany({ connection_id });
+
+            if (counted.deletedCount > 0) {
+                return Promise.resolve();
+            }
+        } catch (er) {
+            return Promise.reject(er);
+        }
+    }
+
+    protected async removeAllChats(connection_id: string) {
+        try {
+            const counted = await Chats.deleteMany({ connection_id });
+
+            if (counted.deletedCount > 0) {
+                return Promise.resolve();
+            }
+        } catch (er) {
+            return Promise.reject(er);
+        }
+    }
+
+    async removeWholeChat(connection_id: string) {
+        try {
+            const promise1 = this.removeAllUsersByConnectionId(connection_id);
+            const promise2 = this.removeAllChats(connection_id);
+    
+            await Promise.all([promise1, promise2]);
+    
+            return Promise.resolve();
+        } catch (er) {
+            return Promise.reject(er);
+        }
     }
 
     protected async saveData(obj: SAVEDATA_FN_TYPE): Promise<FOUND_SUCCESS_BY_USER_BODY> {
@@ -56,7 +97,6 @@ export default class Data {
 
     protected async findChatsAndUpdate(connection_id: string, username: string, is_root: boolean, socket_id: string) {
         const chat = await findChatsByConnectionId(Chats, connection_id,);
-        console.log(chat);
 
         if (!chat) {
             return Promise.reject({ statusCode: 500, message: 'Internal Error' });
@@ -119,6 +159,39 @@ export default class Data {
                 statusCode: 200,
                 body: data
             });
+        } catch (er) {
+            return Promise.reject(er);
+        }
+    }
+
+    async addText(connection_id: string, is_root: boolean, username: string, message: string, socket_id: string) {
+        try {
+            const value = await Chats.findOne({ connection_id });
+            value?.messages.push({
+                connection_id,
+                is_root,
+                username,
+                message,
+                socket_id
+            });
+    
+            value?.save();
+
+            return Promise.resolve();
+        } catch (er) {
+            return Promise.reject(er);
+        }
+    }
+
+    async removeNonAdminUser(email: string, username: string, connection_id: string, is_root: boolean, socket_id: string) {
+        try {
+            const res = await removeUserByEmail(Users, email);
+
+            if (res.deletedCount) {
+                const message = `${username} is left the chat`;
+                this.addText(connection_id, is_root, username, message, socket_id);
+                return Promise.resolve();
+            }
         } catch (er) {
             return Promise.reject(er);
         }

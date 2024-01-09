@@ -10,6 +10,10 @@ export async function findBySocketId<T>(model: mongoose.Model<T>, id: string): P
     return await model.findOne({ socket_id: id });
 }
 
+export async function removeUserByEmail<T>(model: mongoose.Model<T>, email: string) {
+    return await model.deleteOne({ email });
+}
+
 export async function findChatsByConnectionId<T>(model: mongoose.Model<T>, connection_id: string): Promise<null | TYPE_CHAT_MODEL> {
     try {
         return await model.findOne({ connection_id });

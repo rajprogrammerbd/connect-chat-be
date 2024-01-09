@@ -3,7 +3,7 @@ require("dotenv").config();
 import express from 'express';
 import { createServer } from "node:http";
 import { Server } from "socket.io";
-import { CREATE_USER, FAILED_RESPONSE, SEND_RESPONSE_CREATED_USER } from './helper/actions';
+import { CREATE_USER, DISCONNECT, FAILED_RESPONSE, SEND_RESPONSE_CREATED_USER } from './helper/actions';
 import { CREATE_USER_BODY_TYPE } from './helper/types';
 import Data from './Data/Events';
 
@@ -23,16 +23,22 @@ io.on('connection', (socket) => {
   });
 
   // handle disconnection of an user
-  socket.on("disconnect", async () => {
-    /*
+  socket.on(DISCONNECT, async () => {
     const user = await data.searchUserBySocketId(socket.id);
 
     if (user) {
       if (user.is_root) {
+        // delete the whole chat if the user is admin
+        const connection_id = user.connection_id;
 
+        data.removeWholeChat(connection_id);
+        socket.leave(socket.id);
+      } else {
+        await data.removeNonAdminUser(user.email, user.username, user.connection_id, user.is_root, user.socket_id);
       }
     }
-    */
+
+    console.log('user not found')
   });
 
   socket.on(CREATE_USER, async (body: CREATE_USER_BODY_TYPE) => {
