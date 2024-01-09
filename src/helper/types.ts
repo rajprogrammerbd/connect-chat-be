@@ -1,30 +1,24 @@
-import { Types } from "mongoose";
+import mongoose from "mongoose";
+
+export type RESOLVE_SOCKET_ID_RESULT = Promise<null | FOUND_SUCCESS_BY_USER_BODY>
+
+export type FOUND_SUCCESS_BY_USER_BODY = {
+    _id: mongoose.Types.ObjectId;
+    username: string;
+    email: string;
+    is_root: boolean;
+    connection_id: string;
+    socket_id: string;
+}
 
 export type SUCCESS_RESPONSE_USER_CREATE = {
     statusCode: number;
-    body: {
-        user_id: Types.ObjectId;
-        username: string;
-        email: string;
-        isRoot: boolean;
-        connection_id: string;
-        socket_id: string;
-    }
+    body: FOUND_SUCCESS_BY_USER_BODY
 }
 
 export type FAILED_RESPONSE = {
     statusCode: number;
     body: string;
-}
-
-export type SAVEDATA_FN_TYPE_CB = {
-    statusCode: number;
-    username: string;
-    user_id: Types.ObjectId;
-    is_root: boolean;
-    connection_id: string;
-    email: string;
-    socket_id: string;
 }
 
 export type SAVEDATA_FN_TYPE = {
@@ -34,7 +28,6 @@ export type SAVEDATA_FN_TYPE = {
         is_root: boolean;
         socket_id: string;
     },
-    cb: (o: SAVEDATA_FN_TYPE_CB) => void,
     connection_id: string | null;
 }
 

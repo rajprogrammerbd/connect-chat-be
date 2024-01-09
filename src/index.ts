@@ -22,6 +22,19 @@ io.on('connection', (socket) => {
     socket.emit('world', val);
   });
 
+  // handle disconnection of an user
+  socket.on("disconnect", async () => {
+    /*
+    const user = await data.searchUserBySocketId(socket.id);
+
+    if (user) {
+      if (user.is_root) {
+
+      }
+    }
+    */
+  });
+
   socket.on(CREATE_USER, async (body: CREATE_USER_BODY_TYPE) => {
     const { email, is_root, username, connection_id } = body;
     // verifying the body object.

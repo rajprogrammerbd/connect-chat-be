@@ -3,7 +3,7 @@ import mongoose from 'mongoose'
 const { Schema } = mongoose
 
 const chatSchema = new Schema({
-  email: {
+  connection_id: {
     messages: [
       {
         userId: {
