@@ -20,7 +20,8 @@ const data = new Data();
 io.on('connection', (socket) => {
   socket.on('hello', (val: string) => {
     socket.emit('world', val);
-  })
+  });
+
   socket.on(CREATE_USER, async (body: CREATE_USER_BODY_TYPE) => {
     const { email, is_root, username, connection_id } = body;
     // verifying the body object.
@@ -44,6 +45,11 @@ io.on('connection', (socket) => {
     // add a new user
     try {
       const response = await data.addUser(username, email, is_root, connection_id, socket.id);
+
+      if (typeof response.body !== 'string') {
+        socket.join(response.body.connection_id);
+      }
+
       socket.emit(SEND_RESPONSE_CREATED_USER, response);
     } catch (er) {
       socket.emit(FAILED_RESPONSE, er);
