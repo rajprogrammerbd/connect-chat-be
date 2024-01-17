@@ -5,7 +5,7 @@ import os from "node:os";
 import express from 'express';
 import { createServer } from "node:http";
 import { Server } from "socket.io";
-import { CREATE_USER, DISCONNECT, FAILED_RESPONSE, MESSAGES, SEND_MESSAGES, SEND_RESPONSE_CREATED_USER } from './helper/actions';
+import { CREATE_USER, DISCONNECT, FAILED_RESPONSE, SEND_MESSAGES, SEND_RESPONSE_CREATED_USER } from './helper/actions';
 import { CREATE_USER_BODY_TYPE } from './helper/types';
 import Data from './Data/Events';
 
@@ -91,26 +91,11 @@ function app() {
 
         if (typeof response.body !== 'string') {
           socket.join(response.body.connection_id);
+
+          const chat = await data.get_chat(response.body.connection_id);
+          socket.emit(SEND_RESPONSE_CREATED_USER, response);
+          io.to(response.body.connection_id).emit(SEND_MESSAGES, chat);
         }
-        
-        socket.emit(SEND_RESPONSE_CREATED_USER, response);
-      } catch (er) {
-        socket.emit(FAILED_RESPONSE, er);
-      }
-    });
-
-    socket.on(MESSAGES, async (connection_id: string) => {
-      try {
-        // find chat history
-        if (!connection_id) {
-          socket.emit(FAILED_RESPONSE, { statusCode: 404, message: "connection_id is required" });
-          return;
-        }
-
-        const chat = await data.get_chat(connection_id);
-
-        socket.emit(SEND_MESSAGES, chat);
-
       } catch (er) {
         socket.emit(FAILED_RESPONSE, er);
       }
