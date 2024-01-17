@@ -3,6 +3,12 @@ import mongoose from 'mongoose'
 const { Schema } = mongoose
 
 const chatSchema = new Schema({
+  group_name: {
+    type: String,
+    required: true,
+    min: 2,
+    max: 120
+  },
   connection_id: {
     type: String,
     required: true,

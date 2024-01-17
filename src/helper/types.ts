@@ -21,6 +21,7 @@ export type TYPE_MESSAGE_SYNTAX = {
 
 export type TYPE_CHAT_MODEL = {
     connection_id: string;
+    group_name: string;
     messages: TYPE_MESSAGE_SYNTAX[];
 }
 
@@ -49,4 +50,19 @@ export type CREATE_USER_BODY_TYPE = {
     email: string;
     is_root: boolean;
     connection_id: null | string;
+}
+
+export type RESPONSE_CHAT_MESSAGE = {
+    username: string;
+    message: string;
+    connection_id: string;
+    is_root: boolean;
+    socket_id: string;
+}
+
+export type RESPONSE_CHAT_BODY = {
+    _id: mongoose.Types.ObjectId;
+    connection_id: string;
+    group_name: string;
+    messages: RESPONSE_CHAT_MESSAGE[];
 }

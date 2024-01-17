@@ -1,4 +1,5 @@
-import { FAILED_RESPONSE, FOUND_SUCCESS_BY_USER_BODY, RESOLVE_SOCKET_ID_RESULT, SAVEDATA_FN_TYPE, SUCCESS_RESPONSE_USER_CREATE, TYPE_CHAT_MODEL } from "../../helper/types";
+import { uniqueNamesGenerator, adjectives, colors } from "unique-names-generator";
+import { FAILED_RESPONSE, FOUND_SUCCESS_BY_USER_BODY, RESOLVE_SOCKET_ID_RESULT, RESPONSE_CHAT_BODY, SAVEDATA_FN_TYPE, SUCCESS_RESPONSE_USER_CREATE, TYPE_CHAT_MODEL } from "../../helper/types";
 import { findByConnectedId, findByEmail, findBySocketId, findChatsByConnectionId, generateId, removeUserByEmail } from "../../helper";
 import Users from "../Models/Users";
 import Chats from "../Models/Chats";
@@ -77,6 +78,8 @@ export default class Data {
     }
 
     addChats(username: string, connection_id: string, is_root: boolean, socket_id: string): Promise<TYPE_CHAT_MODEL> {
+        const groupName = uniqueNamesGenerator({ dictionaries: [adjectives, colors] });
+
         const newChat = new Chats({
             connection_id,
             messages: [
@@ -85,9 +88,10 @@ export default class Data {
                     message: `${username} has started the chat`,
                     connection_id,
                     is_root,
-                    socket_id
+                    socket_id,
                 }
-            ]
+            ],
+            group_name: groupName
         });
 
         const chats = newChat.save();
@@ -95,13 +99,14 @@ export default class Data {
         return Promise.resolve(chats);
     }
 
-    protected async findChatsAndUpdate(connection_id: string, username: string, is_root: boolean, socket_id: string) {
+    protected async findChatsAndUpdate(connection_id: string, username: string, is_root: boolean, socket_id: string, group_name: string) {
         const chat = await findChatsByConnectionId(Chats, connection_id,);
 
         if (!chat) {
             return Promise.reject({ statusCode: 500, message: 'Internal Error' });
         }
 
+        chat.group_name = group_name;
         chat.messages.push({
             username,
             connection_id,
@@ -132,11 +137,12 @@ export default class Data {
             if (!is_root) {
                 if (typeof connection_id === 'string') {
                     const searchConnectedId = await findByConnectedId(Users, connection_id);
+                    const searchChat = await findByConnectedId(Chats, connection_id);
 
-                    if (searchConnectedId) {
+                    if (searchConnectedId && searchChat) {
                         // save a existing user.
                         const data = await this.saveData({ object: { username, email, is_root, socket_id }, connection_id });
-                        await this.findChatsAndUpdate(data.connection_id, data.username, data.is_root, socket_id);
+                        await this.findChatsAndUpdate(data.connection_id, data.username, data.is_root, socket_id, searchChat.group_name);
                         return Promise.resolve({
                             statusCode: 200,
                             body: data
@@ -194,6 +200,20 @@ export default class Data {
             }
         } catch (er) {
             return Promise.reject(er);
+        }
+    }
+
+    async get_chat(connection_id: string): Promise<RESPONSE_CHAT_BODY | FAILED_RESPONSE> {
+        try {
+            const chats = await Chats.findOne({ connection_id });
+            
+            if (!chats) {
+                return Promise.reject({ statusCode: 404, message: "User not found!" });
+            }
+
+            return Promise.resolve(chats);
+        } catch (er) {
+            return Promise.reject({ statusCode: 500, message: "Internal Error" });
         }
     }
 }
