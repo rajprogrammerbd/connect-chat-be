@@ -5,7 +5,7 @@ import os from "node:os";
 import express from 'express';
 import { createServer } from "node:http";
 import { Server } from "socket.io";
-import { CREATE_USER, DISCONNECT, FAILED_RESPONSE, SEND_MESSAGES, SEND_RESPONSE_CREATED_USER } from './helper/actions';
+import { CREATE_USER, DISCONNECT, FAILED_RESPONSE, RECONNECT, SEND_MESSAGES, SEND_RESPONSE_CREATED_USER } from './helper/actions';
 import { CREATE_USER_BODY_TYPE } from './helper/types';
 import Data from './Data/Events';
 
@@ -49,22 +49,24 @@ function app() {
     });
   
     // handle disconnection of an user
-    socket.on(DISCONNECT, async () => {
-      const user = await data.searchUserBySocketId(socket.id);
+    socket.on(DISCONNECT, () => {
+      setTimeout(async () => {
+        const user = await data.searchUserBySocketId(socket.id);
   
-      if (user) {
-        if (user.is_root) {
-          // delete the whole chat if the user is admin
-          const connection_id = user.connection_id;
+        if (user) {
+          if (user.is_root) {
+            // delete the whole chat if the user is admin
+            const connection_id = user.connection_id;
+    
+            data.removeWholeChat(connection_id);
+          } else {
+            await data.removeNonAdminUser(user.email, user.username, user.connection_id, user.is_root, user.socket_id);
+            const chat = await data.get_chat(user.connection_id);
   
-          data.removeWholeChat(connection_id);
-        } else {
-          await data.removeNonAdminUser(user.email, user.username, user.connection_id, user.is_root, user.socket_id);
-          const chat = await data.get_chat(user.connection_id);
-
-          io.to(user.connection_id).emit(SEND_MESSAGES, chat);
+            io.to(user.connection_id).emit(SEND_MESSAGES, chat);
+          }
         }
-      }
+      }, 10000);
     });
   
     socket.on(CREATE_USER, async (body: CREATE_USER_BODY_TYPE) => {
@@ -101,6 +103,11 @@ function app() {
       } catch (er) {
         socket.emit(FAILED_RESPONSE, er);
       }
+    });
+
+    socket.on(RECONNECT, (socketId: string) => {
+      // email check here.
+      console.log('email got ', socketId, socket.id);
     });
   });
   
