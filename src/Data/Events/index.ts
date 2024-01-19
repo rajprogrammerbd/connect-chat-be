@@ -170,7 +170,7 @@ export default class Data {
         }
     }
 
-    async addText(connection_id: string, is_root: boolean, username: string, message: string, socket_id: string) {
+    async addText(connection_id: string, is_root: boolean, username: string, message: string, socket_id: string): Promise<void> {
         try {
             const value = await Chats.findOne({ connection_id });
             value?.messages.push({
@@ -181,7 +181,7 @@ export default class Data {
                 socket_id
             });
     
-            value?.save();
+            await value?.save();
 
             return Promise.resolve();
         } catch (er) {
@@ -189,13 +189,13 @@ export default class Data {
         }
     }
 
-    async removeNonAdminUser(email: string, username: string, connection_id: string, is_root: boolean, socket_id: string) {
+    async removeNonAdminUser(email: string, username: string, connection_id: string, is_root: boolean, socket_id: string): Promise<void> {
         try {
             const res = await removeUserByEmail(Users, email);
 
             if (res.deletedCount) {
                 const message = `${username} is left the chat`;
-                this.addText(connection_id, is_root, username, message, socket_id);
+                await this.addText(connection_id, is_root, username, message, socket_id);
                 return Promise.resolve();
             }
         } catch (er) {

@@ -58,9 +58,11 @@ function app() {
           const connection_id = user.connection_id;
   
           data.removeWholeChat(connection_id);
-          socket.leave(socket.id);
         } else {
           await data.removeNonAdminUser(user.email, user.username, user.connection_id, user.is_root, user.socket_id);
+          const chat = await data.get_chat(user.connection_id);
+
+          io.to(user.connection_id).emit(SEND_MESSAGES, chat);
         }
       }
     });
