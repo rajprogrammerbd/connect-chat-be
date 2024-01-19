@@ -4,10 +4,11 @@ import cluster from 'node:cluster';
 import os from "node:os";
 import express from 'express';
 import { createServer } from "node:http";
-import { Server } from "socket.io";
-import { CREATE_USER, DISCONNECT, FAILED_RESPONSE, RECONNECT, SEND_MESSAGES, SEND_RESPONSE_CREATED_USER } from './helper/actions';
-import { CREATE_USER_BODY_TYPE } from './helper/types';
+import { Server, Socket } from "socket.io";
 import Data from './Data/Events';
+import creationHandler from "./Handlers/creation-user";
+import { DefaultEventsMap } from 'socket.io/dist/typed-events';
+import deletionReconnection from './Handlers/deletion-reconnect';
 
 const cpus = os.cpus();
 const environment = process.env.NODE_ENV;
@@ -42,74 +43,13 @@ function app() {
   });
   
   const data = new Data();
-  
-  io.on('connection', (socket) => {
-    socket.on('hello', (val: string) => {
-      socket.emit('world', val);
-    });
-  
-    // handle disconnection of an user
-    socket.on(DISCONNECT, () => {
-      setTimeout(async () => {
-        const user = await data.searchUserBySocketId(socket.id);
-  
-        if (user) {
-          if (user.is_root) {
-            // delete the whole chat if the user is admin
-            const connection_id = user.connection_id;
-    
-            data.removeWholeChat(connection_id);
-          } else {
-            await data.removeNonAdminUser(user.email, user.username, user.connection_id, user.is_root, user.socket_id);
-            const chat = await data.get_chat(user.connection_id);
-  
-            io.to(user.connection_id).emit(SEND_MESSAGES, chat);
-          }
-        }
-      }, 10000);
-    });
-  
-    socket.on(CREATE_USER, async (body: CREATE_USER_BODY_TYPE) => {
-      const { email, is_root, username, connection_id } = body;
-      // verifying the body object.
-      if (!email) {
-        socket.emit(FAILED_RESPONSE, { statusCode: 404, message: "Email is required!" });
-        return;
-      }
-      if (is_root === undefined) {
-        socket.emit(FAILED_RESPONSE, { statusCode: 404, message: "is_root is required" });
-        return;
-      }
-      if (!username) {
-        socket.emit(FAILED_RESPONSE, { statusCode: 404, message: "username is required" });
-        return;
-      }
-      if (connection_id === undefined) {
-        socket.emit(FAILED_RESPONSE, { statusCode: 404, message: "connection_id is required" });
-        return;
-      }
-  
-      // add a new user
-      try {
-        const response = await data.addUser(username, email, is_root, connection_id, socket.id);
 
-        if (typeof response.body !== 'string') {
-          socket.join(response.body.connection_id);
+  const onConnection = (socket: Socket<DefaultEventsMap, DefaultEventsMap, DefaultEventsMap, void>) => {
+    creationHandler(io, socket, data);
+    deletionReconnection(io, socket, data);
+  }
 
-          const chat = await data.get_chat(response.body.connection_id);
-          socket.emit(SEND_RESPONSE_CREATED_USER, response);
-          io.to(response.body.connection_id).emit(SEND_MESSAGES, chat);
-        }
-      } catch (er) {
-        socket.emit(FAILED_RESPONSE, er);
-      }
-    });
-
-    socket.on(RECONNECT, (socketId: string) => {
-      // email check here.
-      console.log('email got ', socketId, socket.id);
-    });
-  });
+  io.on("connection", onConnection);
   
   const PORT = process.env.PORT || 4000;
   
@@ -117,4 +57,3 @@ function app() {
     console.log(`Server is listening on ${PORT}`);
   });
 }
-
