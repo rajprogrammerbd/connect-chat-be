@@ -58,16 +58,16 @@ export default class Data {
     }
 
     protected async saveData(obj: SAVEDATA_FN_TYPE): Promise<FOUND_SUCCESS_BY_USER_BODY> {
-        const { object, connection_id } = obj;
+        const { object, connection_id, socket_id } = obj;
 
         const randomId = await generateId();
-        const { email, socket_id, is_root, username } = object;
+        const { email, is_root, username } = object;
 
         const newUser = new Users({
             username: username,
             email,
-            is_root,
             socket_id,
+            is_root,
             connection_id: connection_id ? connection_id : randomId
         });
 
@@ -99,7 +99,7 @@ export default class Data {
         return Promise.resolve(chats);
     }
 
-    protected async findChatsAndUpdate(connection_id: string, username: string, is_root: boolean, socket_id: string, group_name: string) {
+    protected async findChatsAndUpdate(connection_id: string, username: string, is_root: boolean, group_name: string) {
         const chat = await findChatsByConnectionId(Chats, connection_id,);
 
         if (!chat) {
@@ -111,15 +111,14 @@ export default class Data {
             username,
             connection_id,
             is_root,
-            message: `${username} joined the chat`,
-            socket_id
+            message: `${username} joined the chat`
         });
 
-        const doc = await Chats.findOneAndUpdate({ connection_id }, { messages: chat.messages }, {
+        const docs = await Chats.findOneAndUpdate({ connection_id }, { messages: chat.messages }, {
             new: true
         });
 
-        return Promise.resolve(doc);
+        return Promise.resolve(docs);
     }
 
     async addUser(username: string, email: string, is_root = false, connection_id: string | null, socket_id: string): Promise<FAILED_RESPONSE | SUCCESS_RESPONSE_USER_CREATE> {
@@ -141,8 +140,8 @@ export default class Data {
 
                     if (searchConnectedId && searchChat) {
                         // save a existing user.
-                        const data = await this.saveData({ object: { username, email, is_root, socket_id }, connection_id });
-                        await this.findChatsAndUpdate(data.connection_id, data.username, data.is_root, socket_id, searchChat.group_name);
+                        const data = await this.saveData({ object: { username, email, is_root }, connection_id, socket_id });
+                        await this.findChatsAndUpdate(data.connection_id, data.username, data.is_root, searchChat.group_name);
                         return Promise.resolve({
                             statusCode: 200,
                             body: data
@@ -158,7 +157,7 @@ export default class Data {
                 return Promise.reject({ statusCode: 500, message: "Internal error" });
             }
 
-            const data = await this.saveData({ object: { socket_id, username, email, is_root }, connection_id: null });
+            const data = await this.saveData({ object: { username, email, is_root }, connection_id: null, socket_id });
             await this.addChats(data.username, data.connection_id, data.is_root, data.socket_id);
 
             return Promise.resolve({
@@ -214,6 +213,23 @@ export default class Data {
             return Promise.resolve(chats);
         } catch (er) {
             return Promise.reject({ statusCode: 500, message: "Internal Error" });
+        }
+    }
+
+    async updateSocketId(oldSocketId: string, newSocketId: string): Promise<void | FAILED_RESPONSE> {
+        try {
+            const filter = {
+                socket_id: oldSocketId
+            };
+            const update = {
+                socket_id: newSocketId
+            };
+            
+            await Users.findOneAndUpdate(filter, update, { new: true });
+            
+            return Promise.resolve();
+        } catch (er) {
+            return Promise.reject({ statusCode: 500, message: "Internal Error" })
         }
     }
 }

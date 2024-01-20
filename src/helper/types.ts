@@ -16,7 +16,6 @@ export type TYPE_MESSAGE_SYNTAX = {
     message: string;
     connection_id: string;
     is_root: boolean;
-    socket_id: string;
 }
 
 export type TYPE_CHAT_MODEL = {
@@ -40,8 +39,8 @@ export type SAVEDATA_FN_TYPE = {
         username: string;
         email: string;
         is_root: boolean;
-        socket_id: string;
-    },
+    };
+    socket_id: string;
     connection_id: string | null;
 }
 
@@ -57,7 +56,6 @@ export type RESPONSE_CHAT_MESSAGE = {
     message: string;
     connection_id: string;
     is_root: boolean;
-    socket_id: string;
 }
 
 export type RESPONSE_CHAT_BODY = {
