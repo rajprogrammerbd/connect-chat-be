@@ -216,7 +216,7 @@ export default class Data {
         }
     }
 
-    async updateSocketId(oldSocketId: string, newSocketId: string): Promise<void | FAILED_RESPONSE> {
+    async updateSocketId(oldSocketId: string, newSocketId: string): Promise<SUCCESS_RESPONSE_USER_CREATE | FAILED_RESPONSE> {
         try {
             const filter = {
                 socket_id: oldSocketId
@@ -225,9 +225,13 @@ export default class Data {
                 socket_id: newSocketId
             };
             
-            await Users.findOneAndUpdate(filter, update, { new: true });
-            
-            return Promise.resolve();
+            const response = await Users.findOneAndUpdate(filter, update, { new: true });
+
+            if (response) {
+                return Promise.resolve({ statusCode: 200, body: response });
+            }
+
+            return Promise.reject({ statusCode: 404, message: "User not found" });
         } catch (er) {
             return Promise.reject({ statusCode: 500, message: "Internal Error" })
         }

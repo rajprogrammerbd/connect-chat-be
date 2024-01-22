@@ -3,6 +3,7 @@ import { DefaultEventsMap } from "socket.io/dist/typed-events";
 import { CREATE_USER, FAILED_RESPONSE, SEND_MESSAGES, SEND_RESPONSE_CREATED_USER } from "../helper/actions";
 import { CREATE_USER_BODY_TYPE } from "../helper/types";
 import Data from "../Data/Events";
+import map from "../Data/Maps";
 
 function creationHandler(io: Server<DefaultEventsMap, DefaultEventsMap, DefaultEventsMap, void>, socket: Socket<DefaultEventsMap, DefaultEventsMap, DefaultEventsMap, void>, data: Data): void {
     const createUser = async function(body: CREATE_USER_BODY_TYPE) {
@@ -31,6 +32,7 @@ function creationHandler(io: Server<DefaultEventsMap, DefaultEventsMap, DefaultE
   
           if (typeof response.body !== 'string') {
             socket.join(response.body.connection_id);
+            map.add(response.body.email, false);
   
             const chat = await data.get_chat(response.body.connection_id);
             socket.emit(SEND_RESPONSE_CREATED_USER, response);
