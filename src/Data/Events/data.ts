@@ -14,7 +14,10 @@ connection.once('createConnection', () => {
     const connection = mongoose.connect(process.env.DATABASE_URL as string);
     connection
         .then(() => CONNECTION_STATUS(colors.bgGreen.italic("Database is connected")))
-        .catch(() => CONNECTION_STATUS(colors.bgRed.white("Failed connect to database")))
+        .catch(() => {
+            CONNECTION_STATUS(colors.bgRed.white("Failed connect to database"));
+            throw new Error('database connection failed');
+        });
 });
 
 export default connection;
