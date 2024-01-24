@@ -9,6 +9,7 @@ import Data from './Data/Events';
 import creationHandler from "./Handlers/creation-user";
 import { DefaultEventsMap } from 'socket.io/dist/typed-events';
 import deletionReconnection from './Handlers/deletion-reconnect';
+import updateHandler from './Handlers/update-data';
 
 const cpus = os.cpus();
 const environment = process.env.NODE_ENV;
@@ -47,6 +48,7 @@ function app() {
   const onConnection = (socket: Socket<DefaultEventsMap, DefaultEventsMap, DefaultEventsMap, void>) => {
     creationHandler(io, socket, data);
     deletionReconnection(io, socket, data);
+    updateHandler(io, socket, data);
   }
 
   io.on("connection", onConnection);

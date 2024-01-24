@@ -64,3 +64,9 @@ export type RESPONSE_CHAT_BODY = {
     group_name: string;
     messages: RESPONSE_CHAT_MESSAGE[];
 }
+
+export type UPDATE_GROUP_NAME_REQ_BODY = {
+    groupName: string;
+    connection_id: string;
+    email: string;
+}

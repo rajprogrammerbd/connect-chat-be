@@ -20,26 +20,30 @@ function deletionReconnection(io: Server<DefaultEventsMap, DefaultEventsMap, Def
 
     const deleteUser = async function() {
       const user = await data.searchUserBySocketId(socket.id);
-      
-          if (user) {
-            map.add(user.email, true);
+    
+      if (user) {
+        map.add(user.email, true);
 
-            setTimeout(async () => {
-              if (map.get(user.email)) {
-                if (user.is_root) {
-                  // delete the whole chat if the user is admin
-                  const connection_id = user.connection_id;
-          
-                  data.removeWholeChat(connection_id);
-                  } else {
-                  await data.removeNonAdminUser(user.email, user.username, user.connection_id, user.is_root, user.socket_id);
-                  const chat = await data.get_chat(user.connection_id);
-
-                  io.to(user.connection_id).emit(SEND_MESSAGES, chat);
-                  }
-              }
-            }, 20000);
+        setTimeout(async () => {
+          try {
+            if (map.get(user.email)) {
+              if (user.is_root) {
+                // delete the whole chat if the user is admin
+                const connection_id = user.connection_id;
+        
+                await data.removeWholeChat(connection_id);
+                } else {
+                await data.removeNonAdminUser(user.email, user.username, user.connection_id, user.is_root, user.socket_id);
+                const chat = await data.get_chat(user.connection_id);
+  
+                io.to(user.connection_id).emit(SEND_MESSAGES, chat);
+                }
+            }
+          } catch (er) {
+            return socket.emit(FAILED_RESPONSE, { statusCode: 500, message: "Internal Error" });
           }
+        }, 5000);
+      }
     }
 
     socket.on(DISCONNECT, deleteUser);

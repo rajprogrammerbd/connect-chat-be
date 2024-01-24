@@ -236,4 +236,30 @@ export default class Data {
             return Promise.reject({ statusCode: 500, message: "Internal Error" })
         }
     }
+
+    async updateGroupName(group_name: string, connection_id: string, email: string): Promise<void> {
+        try {
+            const user = await this.findUser(email);
+
+            const chat = await Chats.findOne({ connection_id });
+            chat?.messages.push({
+                username: user?.username,
+                connection_id: user?.connection_id,
+                is_root: user?.is_root,
+                message: `${user?.username} changed the group name`
+            });
+
+            chat!.group_name = group_name;
+
+            await chat?.save();
+
+            return Promise.resolve();
+        } catch (er) {
+            return Promise.reject();
+        }
+    }
+
+    async findUser(email: string) {
+        return await Users.findOne({ email });
+    }
 }
