@@ -6,6 +6,7 @@ export const MESSAGES = "get_messages";
 export const SEND_MESSAGES = 'send_messages';
 export const RECONNECT = 'reconnect-connections';
 export const UPDATE_GROUP_NAME = "update_group_names";
+export const SEND_UPDATE_GROUP_NAME = 'send_update_group_name';
 
 // Export data
 export const SEND_RESPONSE_CREATED_USER = "SEND_RESPONSE_CREATED_USER";

@@ -8,6 +8,7 @@ import map from "../Data/Maps";
 function creationHandler(io: Server<DefaultEventsMap, DefaultEventsMap, DefaultEventsMap, void>, socket: Socket<DefaultEventsMap, DefaultEventsMap, DefaultEventsMap, void>, data: Data): void {
     const createUser = async function(body: CREATE_USER_BODY_TYPE) {
         const { email, is_root, username, connection_id } = body;
+
         // verifying the body object.
         if (!email) {
           socket.emit(FAILED_RESPONSE, { statusCode: 404, message: "Email is required!" });

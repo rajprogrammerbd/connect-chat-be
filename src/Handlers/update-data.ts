@@ -1,7 +1,7 @@
 import { Server, Socket } from "socket.io";
 import { DefaultEventsMap } from "socket.io/dist/typed-events";
 import Data from "../Data/Events";
-import { SEND_MESSAGES, UPDATE_GROUP_NAME } from "../helper/actions";
+import { SEND_UPDATE_GROUP_NAME, UPDATE_GROUP_NAME } from "../helper/actions";
 import { UPDATE_GROUP_NAME_REQ_BODY } from "../helper/types";
 
 function updateHandler(io: Server<DefaultEventsMap, DefaultEventsMap, DefaultEventsMap, void>, socket: Socket<DefaultEventsMap, DefaultEventsMap, DefaultEventsMap, void>, data: Data): void {
@@ -12,7 +12,7 @@ function updateHandler(io: Server<DefaultEventsMap, DefaultEventsMap, DefaultEve
             await data.updateGroupName(groupName, connection_id, email);
             const chat = await data.get_chat(connection_id);
 
-            io.to(connection_id).emit(SEND_MESSAGES, chat);
+            io.to(connection_id).emit(SEND_UPDATE_GROUP_NAME, { data: chat, connection_id });
 
         } catch (er) {
             console.error(er);

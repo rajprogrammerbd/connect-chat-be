@@ -16,6 +16,7 @@ export type TYPE_MESSAGE_SYNTAX = {
     message: string;
     connection_id: string;
     is_root: boolean;
+    notification: boolean;
 }
 
 export type TYPE_CHAT_MODEL = {

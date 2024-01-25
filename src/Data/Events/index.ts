@@ -89,6 +89,7 @@ export default class Data {
                     connection_id,
                     is_root,
                     socket_id,
+                    notification: true
                 }
             ],
             group_name: groupName
@@ -111,7 +112,8 @@ export default class Data {
             username,
             connection_id,
             is_root,
-            message: `${username} joined the chat`
+            message: `${username} joined the chat`,
+            notification: true
         });
 
         const docs = await Chats.findOneAndUpdate({ connection_id }, { messages: chat.messages }, {
@@ -177,7 +179,8 @@ export default class Data {
                 is_root,
                 username,
                 message,
-                socket_id
+                socket_id,
+                notification: false
             });
     
             await value?.save();
@@ -246,7 +249,8 @@ export default class Data {
                 username: user?.username,
                 connection_id: user?.connection_id,
                 is_root: user?.is_root,
-                message: `${user?.username} changed the group name`
+                message: `${user?.username} changed the group name`,
+                notification: true
             });
 
             chat!.group_name = group_name;

@@ -38,6 +38,10 @@ const chatSchema = new Schema({
       is_root: {
           type: Boolean,
           required: true
+      },
+      notification: {
+        type: Boolean,
+        required: true
       }
     },
   ],
