@@ -15,6 +15,7 @@ module.exports = {
     'no-continue': 'error',
     '@typescript-eslint/no-unused-vars': 'error',
     '@typescript-eslint/consistent-type-definitions': ['error', 'type'],
+    'typescript-eslint/no-non-null-assertion': 0
   },
   env: {
     browser: true,
