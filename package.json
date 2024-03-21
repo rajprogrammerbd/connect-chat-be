@@ -19,7 +19,6 @@
   },
   "dependencies": {
     "@socket.io/cluster-adapter": "^0.2.2",
-    "@socket.io/sticky": "^1.0.3",
     "colors": "^1.4.0",
     "consola": "^2.15.3",
     "debug": "^4.3.4",

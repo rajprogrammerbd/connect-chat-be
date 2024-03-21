@@ -71,3 +71,13 @@ export type UPDATE_GROUP_NAME_REQ_BODY = {
     connection_id: string;
     email: string;
 }
+
+export type USER_SEND_MESSAGE = {
+    message: string;
+    connection_id: string;
+    email: string;
+    group_name: string;
+    is_root: boolean;
+    username: string;
+    socket_id: string;
+}
