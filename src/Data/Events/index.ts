@@ -253,7 +253,9 @@ export default class Data {
                 notification: true
             });
 
-            chat!.group_name = group_name;
+            if (chat !== null) {
+                chat.group_name = group_name;
+            }
 
             await chat?.save();
 
